@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "1",
+      "description": "Abstract kinetic light trails",
+      "imageUrl": "https://images.unsplash.com/photo-1614471131724-d57b15e45173?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGxpZ2h0fGVufDB8fHx8MTc2ODk0MzY4MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract light"
+    },
+    {
+      "id": "2",
+      "description": "Cyberpunk cityscape at night",
+      "imageUrl": "https://images.unsplash.com/photo-1498036882173-b41c28a8ba34?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y3liZXJwdW5rJTIwY2l0eXxlbnwwfHx8fDE3NjkwMDcwODN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cyberpunk city"
+    },
+    {
+      "id": "3",
+      "description": "Liquid chrome reflections",
+      "imageUrl": "https://images.unsplash.com/photo-1747942748418-0687b898eec4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxsaXF1aWQlMjBjaHJvbWV8ZW58MHx8fHwxNzY5MDM5ODY0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "liquid chrome"
+    },
+    {
+      "id": "4",
+      "description": "Neon grid lines stretching to infinity",
+      "imageUrl": "https://images.unsplash.com/photo-1768330187179-8f42ac8a7c3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuZW9uJTIwZ3JpZHxlbnwwfHx8fDE3Njg5NzAwODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "neon grid"
+    },
+    {
+      "id": "5",
+      "description": "Icy, minimalist geometric shapes",
+      "imageUrl": "https://images.unsplash.com/photo-1604782206219-3b9576575203?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtaW5pbWFsaXN0JTIwZ2VvbWV0cnl8ZW58MHx8fHwxNzY5MDM5ODY0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "minimalist geometry"
+    }
+  ]
 }

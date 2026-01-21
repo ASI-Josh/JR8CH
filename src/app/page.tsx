@@ -1,3 +1,9 @@
+import HomepageVisualizer from "@/components/homepage-visualizer";
+
 export default function Home() {
-  return <></>;
+  return (
+    <section>
+      <HomepageVisualizer />
+    </section>
+  );
 }
