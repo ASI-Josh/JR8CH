@@ -1,8 +1,9 @@
-import {flow} from 'genkit';
-import {ai} from '../genkit';
-import {z} from 'zod';
+'use server';
 
-export const explainSoundFlow = flow(
+import { ai } from '../genkit';
+import { z } from 'zod';
+
+export const explainSoundFlow = ai.defineFlow(
   {
     name: 'explainSoundFlow',
     inputSchema: z.object({
@@ -11,7 +12,7 @@ export const explainSoundFlow = flow(
     }),
     outputSchema: z.string(),
   },
-  async ({query, release_context}) => {
+  async ({ query, release_context }) => {
     const prompt = `You are an AI assistant for the electronic music artist JR8CH. Your persona is knowledgeable, slightly futuristic, and passionate about music technology.
 
     Your goal is to answer questions from fans about JR8CH's music, sound design, and releases.
@@ -26,7 +27,7 @@ export const explainSoundFlow = flow(
 
     Answer:
     `;
-    
+
     const llmResponse = await ai.generate({
       prompt: prompt,
       config: {
@@ -34,6 +35,6 @@ export const explainSoundFlow = flow(
       },
     });
 
-    return llmResponse.text();
+    return llmResponse.text;
   }
 );

@@ -4,7 +4,7 @@ import { CornerDownLeft, Loader2, MessageSquare, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { run } from '@genkit-ai/next/client';
+import { runFlow } from '@genkit-ai/next/client';
 import { explainSoundFlow } from '@/ai/flows/explainer';
 import Markdown from 'react-markdown';
 import { ScrollArea } from './ui/scroll-area';
@@ -40,7 +40,7 @@ export function AiChat() {
     setLoading(true);
 
     try {
-      const response = await run(explainSoundFlow, { query: input });
+      const response = await runFlow(explainSoundFlow, { query: input });
       const assistantMessage: Message = { role: 'assistant', content: response };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
