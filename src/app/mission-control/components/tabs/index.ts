@@ -9,3 +9,5 @@ export { default as EpsteinIntelTab } from './EpsteinIntelTab';
 export { default as TimelineTab } from './TimelineTab';
 export { default as CounterMeasuresTab } from './CounterMeasuresTab';
 export { default as NotebookTab } from './NotebookTab';
+export { default as GatewayTab } from './GatewayTab';
+export { default as AgentCommsTab } from './AgentCommsTab';

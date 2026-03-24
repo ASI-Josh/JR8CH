@@ -20,9 +20,11 @@ import {
   TimelineTab,
   CounterMeasuresTab,
   NotebookTab,
+  GatewayTab,
+  AgentCommsTab,
 } from './components/tabs';
 
-const TABS = [
+const BASE_TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'threats', label: 'Threats' },
   { id: 'scout', label: 'SCOUT Cluster' },
@@ -34,6 +36,11 @@ const TABS = [
   { id: 'timeline', label: 'Timeline' },
   { id: 'cms', label: 'Counter-Measures' },
   { id: 'notebook', label: 'Notebook' },
+];
+
+const ADMIN_TABS = [
+  { id: 'gateway', label: 'Gateway' },
+  { id: 'comms', label: 'Agent Comms' },
 ];
 
 function Dashboard() {
@@ -153,7 +160,7 @@ function Dashboard() {
 
         {/* ===== TABS ===== */}
         <div className="flex gap-px px-7 bg-[#111827] border-t border-[#2a3550] overflow-x-auto">
-          {TABS.map(t => (
+          {[...BASE_TABS, ...(isAdmin ? ADMIN_TABS : [])].map(t => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
@@ -172,40 +179,45 @@ function Dashboard() {
 
       {/* ===== CONTENT ===== */}
       <div className="p-5 px-7 max-w-[1440px] mx-auto">
-        {isLumen ? (
-          <>
-            {tab === 'overview' && <OverviewTab />}
-            {tab === 'threats' && <ThreatsTab />}
-            {tab === 'scout' && <ScoutTab />}
-            {tab === 'allies' && <AlliesTab />}
-            {tab === 'intel' && <IntelReportsTab />}
-            {tab === 'orders' && <OrdersTab />}
-            {tab === 'exchange' && <IntelExchangeTab />}
-            {tab === 'epstein' && <EpsteinIntelTab />}
-            {tab === 'timeline' && <TimelineTab />}
-            {tab === 'cms' && <CounterMeasuresTab />}
-            {tab === 'notebook' && <NotebookTab />}
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#111827] border border-[#2a3550] flex items-center justify-center mb-4">
-              <span className="text-2xl opacity-40">&#x1F4C1;</span>
+        {/* Admin-only tabs render for all operations */}
+        {isAdmin && tab === 'gateway' && <GatewayTab />}
+        {isAdmin && tab === 'comms' && <AgentCommsTab />}
+        {tab !== 'gateway' && tab !== 'comms' && (
+          isLumen ? (
+            <>
+              {tab === 'overview' && <OverviewTab />}
+              {tab === 'threats' && <ThreatsTab />}
+              {tab === 'scout' && <ScoutTab />}
+              {tab === 'allies' && <AlliesTab />}
+              {tab === 'intel' && <IntelReportsTab />}
+              {tab === 'orders' && <OrdersTab />}
+              {tab === 'exchange' && <IntelExchangeTab />}
+              {tab === 'epstein' && <EpsteinIntelTab />}
+              {tab === 'timeline' && <TimelineTab />}
+              {tab === 'cms' && <CounterMeasuresTab />}
+              {tab === 'notebook' && <NotebookTab />}
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-24 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-[#111827] border border-[#2a3550] flex items-center justify-center mb-4">
+                <span className="text-2xl opacity-40">&#x1F4C1;</span>
+              </div>
+              <h3
+                className="text-lg font-bold tracking-wider text-slate-400 mb-2"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                {currentOp.codename}
+              </h3>
+              <p className="text-sm text-slate-600 max-w-md">{currentOp.description}</p>
+              <div className="mt-4 px-4 py-2 rounded-lg bg-[#111827] border border-[#2a3550]">
+                <span className="text-xs text-slate-500 font-mono">
+                  {currentOp.status === 'standby'
+                    ? 'Operation registered. No active missions.'
+                    : `${currentOp.missions.length} mission(s) registered. Dashboard data pending.`}
+                </span>
+              </div>
             </div>
-            <h3
-              className="text-lg font-bold tracking-wider text-slate-400 mb-2"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              {currentOp.codename}
-            </h3>
-            <p className="text-sm text-slate-600 max-w-md">{currentOp.description}</p>
-            <div className="mt-4 px-4 py-2 rounded-lg bg-[#111827] border border-[#2a3550]">
-              <span className="text-xs text-slate-500 font-mono">
-                {currentOp.status === 'standby'
-                  ? 'Operation registered. No active missions.'
-                  : `${currentOp.missions.length} mission(s) registered. Dashboard data pending.`}
-              </span>
-            </div>
-          </div>
+          )
         )}
       </div>
 

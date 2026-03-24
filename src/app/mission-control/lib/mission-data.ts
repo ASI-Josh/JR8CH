@@ -360,3 +360,12 @@ export const TAG_COLORS: Record<string, string> = {
   connection: '#f59e0b',
   concern: '#ef4444',
 };
+
+// ===================== VPS CONFIG =====================
+
+export const VPS_CONFIG = {
+  endpoint: '',        // Will be set when VPS is live
+  wsEndpoint: '',      // WebSocket for live log streaming
+  connected: false,
+  placeholder: true,   // When true, show mock data. When false, connect to real VPS.
+};
