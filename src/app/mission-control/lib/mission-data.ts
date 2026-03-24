@@ -364,8 +364,8 @@ export const TAG_COLORS: Record<string, string> = {
 // ===================== VPS CONFIG =====================
 
 export const VPS_CONFIG = {
-  endpoint: '',        // Will be set when VPS is live
-  wsEndpoint: '',      // WebSocket for live log streaming
-  connected: false,
-  placeholder: true,   // When true, show mock data. When false, connect to real VPS.
+  endpoint: 'https://ops.jr8ch.com/api',
+  wsEndpoint: 'wss://ops.jr8ch.com/ws',
+  connected: true,
+  placeholder: false,
 };
