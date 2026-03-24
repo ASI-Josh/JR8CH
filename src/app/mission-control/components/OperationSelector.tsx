@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { OPERATIONS } from '../lib/mission-data';
-import type { Operation } from '../lib/types';
+import type { Operation, ThreatLevel } from '../lib/types';
 import { Badge, Dot } from './ui';
 
 const THREAT_COLORS: Record<string, string> = {
@@ -14,18 +14,30 @@ const THREAT_COLORS: Record<string, string> = {
   BLACK: '#6b7280',
 };
 
+const THREAT_OPTIONS: ThreatLevel[] = ['GREEN', 'YELLOW', 'AMBER', 'ORANGE', 'RED', 'BLACK'];
+
 interface OperationSelectorProps {
   current: Operation;
+  operations: Operation[];
   onSelect: (op: Operation) => void;
+  onAddOperation: (op: Operation) => void;
 }
 
-export default function OperationSelector({ current, onSelect }: OperationSelectorProps) {
+export default function OperationSelector({ current, operations, onSelect, onAddOperation }: OperationSelectorProps) {
   const [open, setOpen] = useState(false);
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [newCodename, setNewCodename] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [newThreat, setNewThreat] = useState<ThreatLevel>('GREEN');
+  const [newStatus, setNewStatus] = useState<'active' | 'standby'>('standby');
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setShowNewForm(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -37,6 +49,25 @@ export default function OperationSelector({ current, onSelect }: OperationSelect
     const now = new Date();
     const days = Math.floor((now.getTime() - start.getTime()) / 86400000) + 1;
     return `Day ${days}`;
+  };
+
+  const handleCreate = () => {
+    if (!newCodename.trim()) return;
+    const op: Operation = {
+      id: `op-${String(operations.length + 1).padStart(3, '0')}`,
+      codename: newCodename.toUpperCase(),
+      status: newStatus,
+      threatLevel: newThreat,
+      description: newDescription,
+      startDate: newStatus === 'active' ? new Date().toISOString().split('T')[0] : '',
+      missions: [],
+    };
+    onAddOperation(op);
+    setNewCodename('');
+    setNewDescription('');
+    setNewThreat('GREEN');
+    setNewStatus('standby');
+    setShowNewForm(false);
   };
 
   return (
@@ -64,15 +95,83 @@ export default function OperationSelector({ current, onSelect }: OperationSelect
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-[380px] bg-[#111827] border border-[#2a3550] rounded-xl shadow-2xl shadow-black/50 z-[100] animate-fadeIn">
-          <div className="px-4 py-3 border-b border-[#2a3550]">
+        <div className="absolute top-full left-0 mt-2 w-[420px] bg-[#111827] border border-[#2a3550] rounded-xl shadow-2xl shadow-black/50 z-[100] animate-fadeIn">
+          <div className="px-4 py-3 border-b border-[#2a3550] flex items-center justify-between">
             <div className="text-[9px] font-semibold text-slate-500 tracking-[.2em] uppercase">Your Operations</div>
+            <button
+              onClick={() => setShowNewForm(!showNewForm)}
+              className="text-[10px] font-mono text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              {showNewForm ? 'CANCEL' : '+ NEW OPERATION'}
+            </button>
           </div>
+
+          {/* New Operation Form */}
+          {showNewForm && (
+            <div className="px-4 py-4 border-b border-[#2a3550] bg-white/[.01]">
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label className="block text-[9px] font-medium text-slate-500 uppercase tracking-wider mb-1">Operation Codename</label>
+                  <input
+                    type="text"
+                    value={newCodename}
+                    onChange={e => setNewCodename(e.target.value)}
+                    placeholder="e.g. IRON CURTAIN"
+                    className="w-full px-3 py-2 bg-[#0a0e17] border border-[#2a3550] rounded-md text-sm text-slate-200 placeholder:text-slate-600 focus:border-cyan-500 outline-none font-mono tracking-wider"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-medium text-slate-500 uppercase tracking-wider mb-1">Description</label>
+                  <input
+                    type="text"
+                    value={newDescription}
+                    onChange={e => setNewDescription(e.target.value)}
+                    placeholder="Brief description of the operation"
+                    className="w-full px-3 py-2 bg-[#0a0e17] border border-[#2a3550] rounded-md text-sm text-slate-200 placeholder:text-slate-600 focus:border-cyan-500 outline-none"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[9px] font-medium text-slate-500 uppercase tracking-wider mb-1">Threat Level</label>
+                    <select
+                      value={newThreat}
+                      onChange={e => setNewThreat(e.target.value as ThreatLevel)}
+                      className="w-full px-3 py-2 bg-[#0a0e17] border border-[#2a3550] rounded-md text-sm text-slate-200 outline-none"
+                    >
+                      {THREAT_OPTIONS.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-medium text-slate-500 uppercase tracking-wider mb-1">Status</label>
+                    <select
+                      value={newStatus}
+                      onChange={e => setNewStatus(e.target.value as 'active' | 'standby')}
+                      className="w-full px-3 py-2 bg-[#0a0e17] border border-[#2a3550] rounded-md text-sm text-slate-200 outline-none"
+                    >
+                      <option value="standby">Standby</option>
+                      <option value="active">Active</option>
+                    </select>
+                  </div>
+                </div>
+                <button
+                  onClick={handleCreate}
+                  disabled={!newCodename.trim()}
+                  className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-cyan-600/30 disabled:text-white/30 text-white font-semibold rounded-md text-xs tracking-wider transition-all font-mono"
+                >
+                  REGISTER OPERATION
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Operation List */}
           <div className="py-1">
-            {OPERATIONS.map(op => (
+            {operations.map(op => (
               <button
                 key={op.id}
-                onClick={() => { onSelect(op); setOpen(false); }}
+                onClick={() => { onSelect(op); setOpen(false); setShowNewForm(false); }}
                 className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-white/[.03] transition-all ${
                   op.id === current.id ? 'bg-white/[.04]' : ''
                 }`}

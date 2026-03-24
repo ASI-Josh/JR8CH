@@ -40,8 +40,13 @@ function Dashboard() {
   const { user, profile, loading, logout, isAdmin } = useAuth();
   const [tab, setTab] = useState('overview');
   const [showAdmin, setShowAdmin] = useState(false);
+  const [ops, setOps] = useState<Operation[]>(OPERATIONS);
   const [currentOp, setCurrentOp] = useState<Operation>(OPERATIONS[0]);
   const isLumen = currentOp.id === 'op-001';
+
+  const handleAddOperation = (op: Operation) => {
+    setOps(prev => [...prev, op]);
+  };
 
   if (loading) {
     return (
@@ -99,7 +104,7 @@ function Dashboard() {
 
           {/* Center: Operation Selector */}
           <div className="flex items-center">
-            <OperationSelector current={currentOp} onSelect={setCurrentOp} />
+            <OperationSelector current={currentOp} operations={ops} onSelect={setCurrentOp} onAddOperation={handleAddOperation} />
           </div>
 
           {/* Right: Status + User */}
