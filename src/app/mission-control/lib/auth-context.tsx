@@ -82,9 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setError('Access denied. This system is invite-only.');
             setProfile(null);
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error('Error fetching profile:', err);
-          setError('Error loading profile.');
+          setError(`Error loading profile: ${err?.message || err}`);
+          await signOut(auth);
           setProfile(null);
         }
       } else {
