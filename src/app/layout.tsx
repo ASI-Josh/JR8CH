@@ -9,6 +9,14 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'JR8CH Hub',
   description: 'The official hub for music artist JR8CH.',
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icon-192.png',
+  },
 };
 
 export default function RootLayout({
