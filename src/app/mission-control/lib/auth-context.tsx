@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase-config';
 
@@ -61,9 +61,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        // Fetch user profile from Firestore
+        // Fetch user profile from Firestore (retry once if offline)
+        const fetchProfile = async (retries = 2): Promise<any> => {
+          try {
+            return await getDoc(doc(db, 'mission-control-users', firebaseUser.uid));
+          } catch (err: any) {
+            if (retries > 0 && err?.message?.includes('offline')) {
+              await new Promise(r => setTimeout(r, 1500));
+              return fetchProfile(retries - 1);
+            }
+            throw err;
+          }
+        };
         try {
-          const profileDoc = await getDoc(doc(db, 'mission-control-users', firebaseUser.uid));
+          const profileDoc = await fetchProfile();
           if (profileDoc.exists()) {
             const data = profileDoc.data() as UserProfile;
             if (!data.active) {
@@ -123,19 +134,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (err: any) {
-      setError('Google sign-in failed.');
+      const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user') {
+        // User cancelled
+      } else {
+        setError(`Google sign-in failed: ${err?.message || err}`);
+      }
       setLoading(false);
     }
   };
-
-  // Handle redirect result on page load
-  useEffect(() => {
-    getRedirectResult(auth).catch(() => {
-      // Redirect result errors are handled by onAuthStateChanged
-    });
-  }, []);
 
   const logout = async () => {
     await signOut(auth);
