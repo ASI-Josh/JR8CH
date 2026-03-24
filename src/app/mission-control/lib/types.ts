@@ -13,13 +13,20 @@ export type PatternClass =
   | 'FINANCIAL_EXTRACTION';
 
 export interface Operation {
-  code: string;
+  id: string;
   codename: string;
-  region: string;
-  type: string;
-  leadAgent: string;
-  status: string;
+  status: 'active' | 'standby' | 'archived';
   threatLevel: ThreatLevel;
+  description: string;
+  startDate: string;
+  missions: Mission[];
+}
+
+export interface Mission {
+  id: string;
+  name: string;
+  status: 'active' | 'planned' | 'completed';
+  description: string;
 }
 
 export interface ThreatVector {

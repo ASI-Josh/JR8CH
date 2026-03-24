@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Mission Control — The Clarion Agency',
+  title: 'VIGIL — Mission Control',
   robots: { index: false, follow: false },
 };
 

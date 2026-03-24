@@ -40,15 +40,21 @@ export default function SignIn() {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 mb-4 shadow-lg shadow-blue-500/20">
-            <span className="text-2xl">&#x1F52D;</span>
+            <span className="text-2xl">&#x1F441;&#xFE0F;</span>
           </div>
           <h1
-            className="text-2xl font-bold tracking-[0.2em] text-cyan-400"
+            className="text-3xl font-bold tracking-[0.3em] text-cyan-400"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            MISSION CONTROL
+            VIGIL
           </h1>
-          <p className="text-slate-500 text-sm mt-2">The Clarion Agency &mdash; Authorised Access Only</p>
+          <p
+            className="text-sm text-slate-400 mt-1 tracking-[0.15em]"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            Mission Control
+          </p>
+          <p className="text-slate-600 text-xs mt-2 italic">Keeping Watch Through The Darkness</p>
         </div>
 
         {/* Sign In Card */}
@@ -124,7 +130,7 @@ export default function SignIn() {
             className="text-[10px] text-slate-600 tracking-wider"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            THE CLARION AGENCY &bull; EST. 2026 &bull; A CLEAR SIGNAL IN THE NOISE
+            VIGIL &bull; EST. 2026
           </p>
         </div>
       </div>

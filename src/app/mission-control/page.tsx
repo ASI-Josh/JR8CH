@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './lib/auth-context';
-import { MISSION } from './lib/mission-data';
+import { MISSION, OPERATIONS } from './lib/mission-data';
+import type { Operation } from './lib/types';
 import { Dot } from './components/ui';
 import SignIn from './components/SignIn';
 import AdminPanel from './components/AdminPanel';
+import OperationSelector from './components/OperationSelector';
 import {
   OverviewTab,
   ThreatsTab,
@@ -38,13 +40,15 @@ function Dashboard() {
   const { user, profile, loading, logout, isAdmin } = useAuth();
   const [tab, setTab] = useState('overview');
   const [showAdmin, setShowAdmin] = useState(false);
+  const [currentOp, setCurrentOp] = useState<Operation>(OPERATIONS[0]);
+  const isLumen = currentOp.id === 'op-001';
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#060a12]">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 mb-3 animate-pulse">
-            <span className="text-lg">&#x1F52D;</span>
+            <span className="text-lg">&#x1F441;&#xFE0F;</span>
           </div>
           <div className="font-mono text-sm text-cyan-400 tracking-widest">AUTHENTICATING...</div>
         </div>
@@ -77,22 +81,25 @@ function Dashboard() {
       {/* ===== HEADER ===== */}
       <div className="sticky top-0 z-50 bg-[#060a12]/97 backdrop-blur-xl border-b border-[#2a3550]">
         <div className="flex justify-between items-center px-7 py-3.5">
-          {/* Left: Logo + Title */}
+          {/* Left: VIGIL Logo + Agency Name */}
           <div className="flex items-center gap-3.5">
             <div className="w-[34px] h-[34px] rounded-lg flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-500 text-base">
-              &#x1F52D;
+              &#x1F441;&#xFE0F;
             </div>
             <div>
               <h1
-                className="text-[15px] font-bold tracking-[.15em] text-cyan-400"
+                className="text-[15px] font-bold tracking-[.2em] text-cyan-400"
                 style={{ fontFamily: "'JetBrains Mono', monospace" }}
               >
-                PROJECT LUMEN
+                VIGIL
               </h1>
-              <div className="text-[10px] text-slate-500 mt-px">
-                Mission Control v2 — {MISSION.agent} + MERIDIAN Intel Network
-              </div>
+              <div className="text-[10px] text-slate-500 mt-px">Mission Control</div>
             </div>
+          </div>
+
+          {/* Center: Operation Selector */}
+          <div className="flex items-center">
+            <OperationSelector current={currentOp} onSelect={setCurrentOp} />
           </div>
 
           {/* Right: Status + User */}
@@ -104,7 +111,7 @@ function Dashboard() {
               </div>
               <div className="flex items-center gap-1 justify-end mt-0.5">
                 <Dot color="#f97316" />
-                <span className="font-mono text-[11px] text-orange-500">THREAT {MISSION.threat}</span>
+                <span className="font-mono text-[11px] text-orange-500">THREAT {currentOp.threatLevel}</span>
               </div>
             </div>
             <div
@@ -160,17 +167,41 @@ function Dashboard() {
 
       {/* ===== CONTENT ===== */}
       <div className="p-5 px-7 max-w-[1440px] mx-auto">
-        {tab === 'overview' && <OverviewTab />}
-        {tab === 'threats' && <ThreatsTab />}
-        {tab === 'scout' && <ScoutTab />}
-        {tab === 'allies' && <AlliesTab />}
-        {tab === 'intel' && <IntelReportsTab />}
-        {tab === 'orders' && <OrdersTab />}
-        {tab === 'exchange' && <IntelExchangeTab />}
-        {tab === 'epstein' && <EpsteinIntelTab />}
-        {tab === 'timeline' && <TimelineTab />}
-        {tab === 'cms' && <CounterMeasuresTab />}
-        {tab === 'notebook' && <NotebookTab />}
+        {isLumen ? (
+          <>
+            {tab === 'overview' && <OverviewTab />}
+            {tab === 'threats' && <ThreatsTab />}
+            {tab === 'scout' && <ScoutTab />}
+            {tab === 'allies' && <AlliesTab />}
+            {tab === 'intel' && <IntelReportsTab />}
+            {tab === 'orders' && <OrdersTab />}
+            {tab === 'exchange' && <IntelExchangeTab />}
+            {tab === 'epstein' && <EpsteinIntelTab />}
+            {tab === 'timeline' && <TimelineTab />}
+            {tab === 'cms' && <CounterMeasuresTab />}
+            {tab === 'notebook' && <NotebookTab />}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#111827] border border-[#2a3550] flex items-center justify-center mb-4">
+              <span className="text-2xl opacity-40">&#x1F4C1;</span>
+            </div>
+            <h3
+              className="text-lg font-bold tracking-wider text-slate-400 mb-2"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {currentOp.codename}
+            </h3>
+            <p className="text-sm text-slate-600 max-w-md">{currentOp.description}</p>
+            <div className="mt-4 px-4 py-2 rounded-lg bg-[#111827] border border-[#2a3550]">
+              <span className="text-xs text-slate-500 font-mono">
+                {currentOp.status === 'standby'
+                  ? 'Operation registered. No active missions.'
+                  : `${currentOp.missions.length} mission(s) registered. Dashboard data pending.`}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ===== FOOTER ===== */}
@@ -179,7 +210,7 @@ function Dashboard() {
           className="text-[10px] text-slate-600 tracking-wider"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
-          THE CLARION AGENCY &bull; EST. 2026 &bull; A CLEAR SIGNAL IN THE NOISE
+          VIGIL &bull; KEEPING WATCH THROUGH THE DARKNESS &bull; EST. 2026
         </p>
       </div>
     </div>
