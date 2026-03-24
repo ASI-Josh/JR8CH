@@ -39,9 +39,11 @@ export default function SignIn() {
       <div className="relative z-10 w-full max-w-md px-6">
         {/* Logo/Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 mb-4 shadow-lg shadow-blue-500/20">
-            <span className="text-2xl">&#x1F441;&#xFE0F;</span>
-          </div>
+          <img
+            src="/images/brand/vigil-logo.png"
+            alt="VIGIL"
+            className="w-20 h-20 mb-4 object-contain drop-shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+          />
           <h1
             className="text-3xl font-bold tracking-[0.3em] text-cyan-400"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
