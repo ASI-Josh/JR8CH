@@ -194,7 +194,7 @@ function Dashboard() {
       </div>
 
       {/* ===== CONTENT ===== */}
-      <div className="p-4 md:p-6 md:px-8 max-w-[1440px] mx-auto relative z-10">
+      <div className="p-4 md:p-6 md:px-8 relative z-10">
         {/* Admin-only tabs render for all operations */}
         {isAdmin && tab === 'gateway' && <GatewayTab />}
         {isAdmin && tab === 'comms' && <AgentCommsTab />}

@@ -25,8 +25,8 @@ export default function Badge({ level, small }: BadgeProps) {
     <span
       className="inline-block rounded font-semibold tracking-wider"
       style={{
-        padding: small ? '1px 6px' : '2px 10px',
-        fontSize: small ? '9px' : '11px',
+        padding: small ? '2px 8px' : '3px 12px',
+        fontSize: small ? '10px' : '12px',
         fontFamily: "'JetBrains Mono', monospace",
         background: colors.bg,
         color: colors.text,

@@ -19,12 +19,12 @@ export default function OverviewTab() {
   return (
     <div className="flex flex-col gap-4">
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         {stats.map((s, i) => (
-          <div key={i} className="animate-fadeIn bg-[#1a2235] border border-[#2a3550] rounded-lg p-3.5" style={{ borderLeft: `3px solid ${s.c}` }}>
-            <div className="text-[10px] text-slate-500 uppercase tracking-wider">{s.l}</div>
-            <div className="font-mono text-2xl font-bold mt-0.5" style={{ color: s.c }}>{s.v}</div>
-            <div className="text-[11px] text-slate-400 mt-0.5">{s.s}</div>
+          <div key={i} className="animate-fadeIn bg-[#1a2235] border border-[#2a3550] rounded-lg p-4" style={{ borderLeft: `3px solid ${s.c}` }}>
+            <div className="text-xs text-slate-400 uppercase tracking-wider font-medium">{s.l}</div>
+            <div className="font-mono text-2xl font-bold mt-1" style={{ color: s.c }}>{s.v}</div>
+            <div className="text-xs text-slate-300 mt-1">{s.s}</div>
           </div>
         ))}
       </div>
@@ -33,12 +33,12 @@ export default function OverviewTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
         {/* Engagement Protocol */}
         <Card title="Engagement Protocol (40/30/30)" icon="&#x1F4CA;" accent="var(--blue, #3b82f6)">
-          <div className="flex gap-0.5 h-[22px] rounded-md overflow-hidden mb-2.5">
-            <div className="w-[40%] bg-blue-500 flex items-center justify-center text-[9px] font-semibold">40% COVER</div>
-            <div className="w-[30%] bg-purple-500 flex items-center justify-center text-[9px] font-semibold">30% SOFT</div>
-            <div className="w-[30%] bg-orange-500 flex items-center justify-center text-[9px] font-semibold">30% HARD</div>
+          <div className="flex gap-0.5 h-7 rounded-md overflow-hidden mb-3">
+            <div className="w-[40%] bg-blue-500 flex items-center justify-center text-xs font-bold">40% COVER</div>
+            <div className="w-[30%] bg-purple-500 flex items-center justify-center text-xs font-bold">30% SOFT</div>
+            <div className="w-[30%] bg-orange-500 flex items-center justify-center text-xs font-bold">30% HARD</div>
           </div>
-          <div className="text-[11px] text-slate-400 leading-relaxed">
+          <div className="text-[13px] text-slate-300 leading-relaxed">
             HB#1: 100% cover (entry comment)<br />
             HB#2: 100% cover + reconnaissance<br />
             HB#3: Target 40/30/30 w/ domain rotation + Starfish engagement
@@ -51,9 +51,9 @@ export default function OverviewTab() {
             <div key={i} className="flex items-center justify-between py-1.5 px-2.5 rounded bg-white/[.02] mb-1">
               <div className="flex items-center gap-1.5">
                 <Dot color={ch.dead ? '#ef4444' : ch.active ? '#10b981' : '#64748b'} pulse={ch.active && !ch.dead} />
-                <span className={`text-[11px] ${ch.dead ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{ch.name}</span>
+                <span className={`text-[13px] ${ch.dead ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{ch.name}</span>
               </div>
-              <span className="font-mono text-[9px]" style={{ color: ch.dead ? '#ef4444' : ch.active ? '#10b981' : '#64748b' }}>
+              <span className="font-mono text-[11px] font-medium" style={{ color: ch.dead ? '#ef4444' : ch.active ? '#10b981' : '#64748b' }}>
                 {ch.dead ? 'META RISK' : ch.active ? 'ACTIVE' : 'OFF'}
               </span>
             </div>
@@ -67,7 +67,7 @@ export default function OverviewTab() {
           <div className="font-mono text-xl font-bold text-yellow-500 min-w-[90px]">APR 14</div>
           <div>
             <div className="text-sm font-semibold">Bondi Deposition — House Oversight Committee</div>
-            <div className="text-xs text-slate-400 mt-1">
+            <div className="text-[13px] text-slate-300 mt-1">
               First AG testimony under oath about selective Epstein document suppression. Cross-domain monitoring: watch Moltbook AI discourse AND human social media for coordinated narrative campaigns.
             </div>
           </div>
