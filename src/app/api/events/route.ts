@@ -1,4 +1,4 @@
-import { musicReleases } from '@/lib/data';
+import { tourDates } from '@/lib/data';
 import { COLLECTIONS } from '@/lib/firebase/collections';
 import { adminDb } from '@/lib/firebase/admin';
 import { NextResponse } from 'next/server';
@@ -6,22 +6,22 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const snapshot = await adminDb()
-      .collection(COLLECTIONS.releases)
+      .collection(COLLECTIONS.events)
       .where('published', '==', true)
-      .orderBy('year', 'desc')
+      .orderBy('date', 'asc')
       .get();
 
-    const releases = snapshot.docs.map((doc) => ({
+    const events = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
-    if (releases.length) {
-      return NextResponse.json(releases);
+    if (events.length) {
+      return NextResponse.json(events);
     }
   } catch (error) {
-    console.error('Failed to load releases from Firestore.', error);
+    console.error('Failed to load events from Firestore.', error);
   }
 
-  return NextResponse.json(musicReleases);
+  return NextResponse.json(tourDates);
 }

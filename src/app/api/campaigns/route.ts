@@ -1,4 +1,4 @@
-import { musicReleases } from '@/lib/data';
+import { campaignTimeline } from '@/lib/data';
 import { COLLECTIONS } from '@/lib/firebase/collections';
 import { adminDb } from '@/lib/firebase/admin';
 import { NextResponse } from 'next/server';
@@ -6,22 +6,22 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const snapshot = await adminDb()
-      .collection(COLLECTIONS.releases)
+      .collection(COLLECTIONS.campaigns)
       .where('published', '==', true)
-      .orderBy('year', 'desc')
+      .orderBy('date', 'desc')
       .get();
 
-    const releases = snapshot.docs.map((doc) => ({
+    const campaigns = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
-    if (releases.length) {
-      return NextResponse.json(releases);
+    if (campaigns.length) {
+      return NextResponse.json(campaigns);
     }
   } catch (error) {
-    console.error('Failed to load releases from Firestore.', error);
+    console.error('Failed to load campaigns from Firestore.', error);
   }
 
-  return NextResponse.json(musicReleases);
+  return NextResponse.json(campaignTimeline);
 }

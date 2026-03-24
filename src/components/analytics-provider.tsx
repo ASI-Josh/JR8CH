@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
 // Just placeholders, replace with actual IDs
 const GA_TRACKING_ID = "G-XXXXXXXXXX";
@@ -31,7 +31,7 @@ declare global {
   }
 }
 
-export const AnalyticsProvider = ({ children }: { children: React.ReactNode }) => {
+function AnalyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -40,8 +40,16 @@ export const AnalyticsProvider = ({ children }: { children: React.ReactNode }) =
     pageview(url);
   }, [pathname, searchParams]);
 
+  return null;
+}
+
+export const AnalyticsProvider = ({ children }: { children: React.ReactNode }) => {
+
   return (
     <>
+      <Suspense fallback={null}>
+        <AnalyticsTracker />
+      </Suspense>
       {/* Google Analytics */}
       <Script
         strategy="afterInteractive"

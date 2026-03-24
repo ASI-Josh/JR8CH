@@ -16,19 +16,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 const imageMap = new Map<string, ImagePlaceholder>(PlaceHolderImages.map(img => [img.id, img]));
 
 function MusicCard({ release }: { release: Release }) {
-  const artwork = imageMap.get(release.artwork);
+  const artwork = release.artwork ? imageMap.get(release.artwork) : undefined;
+  const imageUrl = release.artworkUrl ?? artwork?.imageUrl;
+  const imageHint = artwork?.imageHint;
+  const imageAlt = artwork?.description ?? `${release.title} artwork`;
 
   return (
     <Card className="flex flex-col overflow-hidden border-border/60 hover:border-primary/80 transition-all duration-300 group bg-card">
       <CardHeader className="p-0">
-        {artwork && (
+        {imageUrl && (
           <div className="aspect-square relative">
             <Image
-              src={artwork.imageUrl}
-              alt={artwork.description}
+              src={imageUrl}
+              alt={imageAlt}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              data-ai-hint={artwork.imageHint}
+              data-ai-hint={imageHint}
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>

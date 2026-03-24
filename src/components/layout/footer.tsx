@@ -16,12 +16,12 @@ export default function Footer() {
       <div className="container py-8 grid grid-cols-1 md:grid-cols-3 items-center justify-between gap-8 text-center md:text-left">
         <div>
           <p className="font-headline text-lg font-bold">JR8CH Hub</p>
-          <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">(c) {new Date().getFullYear()} All rights reserved.</p>
         </div>
         <div className="flex flex-col items-center gap-4 w-full max-w-sm mx-auto">
-          <p className="font-semibold">Stay Updated</p>
+          <p className="font-semibold">Stay updated</p>
           <form className="flex w-full items-center space-x-2">
-            <Input type="email" placeholder="Email" className="flex-1" aria-label="Email for newsletter"/>
+            <Input type="email" placeholder="Email" className="flex-1" aria-label="Email for newsletter" />
             <Button type="submit" variant="default">Subscribe</Button>
           </form>
         </div>

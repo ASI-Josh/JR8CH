@@ -39,7 +39,11 @@ next-env.d.ts
 
 .genkit/*
 .env*
+!.env.example
 
 # firebase
 firebase-debug.log
-firestore-debug.logstudio-project.tgz
+firestore-debug.log
+firebase-adminsdk.json
+service-account.json
+studio-project.tgz
