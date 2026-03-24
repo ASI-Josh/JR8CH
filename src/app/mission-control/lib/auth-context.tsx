@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase-config';
 
@@ -28,6 +28,7 @@ interface AuthContextType {
   loading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
   canWrite: boolean;
@@ -40,6 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   error: null,
   login: async () => {},
+  loginWithGoogle: async () => {},
   logout: async () => {},
   isAdmin: false,
   canWrite: false,
@@ -115,6 +117,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user') {
+        // User cancelled, not an error
+      } else if (code === 'auth/popup-blocked') {
+        setError('Popup was blocked. Please allow popups for this site.');
+      } else {
+        setError('Google sign-in failed.');
+      }
+      setLoading(false);
+    }
+  };
+
   const logout = async () => {
     await signOut(auth);
     setProfile(null);
@@ -125,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const canDownload = profile?.role !== undefined; // All authenticated users can download
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, error, login, logout, isAdmin, canWrite, canDownload }}>
+    <AuthContext.Provider value={{ user, profile, loading, error, login, loginWithGoogle, logout, isAdmin, canWrite, canDownload }}>
       {children}
     </AuthContext.Provider>
   );
