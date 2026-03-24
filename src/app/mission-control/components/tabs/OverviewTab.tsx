@@ -3,6 +3,7 @@
 import React from 'react';
 import { Badge, Card, Dot } from '../ui';
 import { MISSION, STATS, ALLIES, SCOUT, PATTERN_MATCHES, SHARED_ENTITIES, EPSTEIN_INTEL, COMMS_CHANNELS } from '../../lib/mission-data';
+import LiveIntelFeed from '../LiveIntelFeed';
 
 export default function OverviewTab() {
   const stats = [
@@ -73,6 +74,9 @@ export default function OverviewTab() {
           </div>
         </div>
       </Card>
+
+      {/* Live Intel Feed */}
+      <LiveIntelFeed />
     </div>
   );
 }
