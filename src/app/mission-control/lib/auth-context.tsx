@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { User, onAuthStateChanged, signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase-config';
 
@@ -122,19 +122,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect(auth, provider);
     } catch (err: any) {
-      const code = err?.code || '';
-      if (code === 'auth/popup-closed-by-user') {
-        // User cancelled, not an error
-      } else if (code === 'auth/popup-blocked') {
-        setError('Popup was blocked. Please allow popups for this site.');
-      } else {
-        setError('Google sign-in failed.');
-      }
+      setError('Google sign-in failed.');
       setLoading(false);
     }
   };
+
+  // Handle redirect result on page load
+  useEffect(() => {
+    getRedirectResult(auth).catch(() => {
+      // Redirect result errors are handled by onAuthStateChanged
+    });
+  }, []);
 
   const logout = async () => {
     await signOut(auth);
