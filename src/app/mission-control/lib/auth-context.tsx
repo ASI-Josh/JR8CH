@@ -61,24 +61,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        // Fetch user profile from Firestore (retry once if offline)
-        const fetchProfile = async (retries = 2): Promise<any> => {
-          try {
-            return await getDoc(doc(db, 'mission-control-users', firebaseUser.uid));
-          } catch (err: any) {
-            if (retries > 0 && err?.message?.includes('offline')) {
-              await new Promise(r => setTimeout(r, 1500));
-              return fetchProfile(retries - 1);
-            }
-            throw err;
-          }
-        };
+        // Fetch user profile via Firestore REST API (bypasses SDK offline issue)
         try {
-          const profileDoc = await fetchProfile();
-          if (profileDoc.exists()) {
-            const data = profileDoc.data() as UserProfile;
+          const token = await firebaseUser.getIdToken();
+          const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '';
+          const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/default/documents/mission-control-users/${firebaseUser.uid}`;
+          const resp = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (resp.ok) {
+            const doc = await resp.json();
+            const fields = doc.fields || {};
+            const data: UserProfile = {
+              uid: fields.uid?.stringValue || firebaseUser.uid,
+              email: fields.email?.stringValue || firebaseUser.email || '',
+              role: (fields.role?.stringValue || 'observer') as UserRole,
+              displayName: fields.displayName?.stringValue || firebaseUser.displayName || '',
+              invitedBy: fields.invitedBy?.stringValue || '',
+              invitedAt: fields.invitedAt?.stringValue || '',
+              lastLogin: fields.lastLogin?.stringValue || '',
+              active: fields.active?.booleanValue ?? false,
+            };
             if (!data.active) {
-              // Account deactivated
               await signOut(auth);
               setError('Account has been deactivated. Contact the administrator.');
               setProfile(null);
@@ -86,12 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(data);
               setError(null);
             }
-          } else {
-            // User exists in Firebase Auth but not in our users collection
-            // This means they weren't properly invited
+          } else if (resp.status === 404) {
             await signOut(auth);
             setError('Access denied. This system is invite-only.');
             setProfile(null);
+          } else {
+            const errData = await resp.json().catch(() => ({}));
+            throw new Error(errData.error?.message || `HTTP ${resp.status}`);
           }
         } catch (err: any) {
           console.error('Error fetching profile:', err);
