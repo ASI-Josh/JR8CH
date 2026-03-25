@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// In-memory cache to avoid GDELT rate limits (1 req per 5 seconds)
+let cachedData: { query: string; data: unknown; timestamp: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
@@ -16,8 +20,11 @@ export async function GET(request: Request) {
     query = `(${baseQuery})${lang}`;
   }
 
-  // Build URL manually — GDELT needs literal parentheses, not %28/%29
-  // Only encode spaces as +
+  // Return cached data if fresh enough and same query
+  if (cachedData && cachedData.query === query && Date.now() - cachedData.timestamp < CACHE_TTL) {
+    return NextResponse.json(cachedData.data);
+  }
+
   const encodedQuery = query.replace(/ /g, '+');
   const gdeltUrl = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodedQuery}&mode=artlist&maxrecords=30&format=json&sort=datedesc&timespan=24h`;
 
@@ -32,6 +39,10 @@ export async function GET(request: Request) {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => 'unknown');
+      // If rate limited and we have stale cache, return that
+      if (res.status === 429 && cachedData) {
+        return NextResponse.json(cachedData.data);
+      }
       return NextResponse.json({ articles: [], error: `GDELT ${res.status}: ${errText.slice(0, 200)}` });
     }
 
@@ -41,8 +52,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ articles: [], error: `Non-JSON: ${text.slice(0, 200)}` });
     }
 
-    return NextResponse.json(JSON.parse(text));
+    const data = JSON.parse(text);
+
+    // Cache the successful response
+    cachedData = { query, data, timestamp: Date.now() };
+
+    return NextResponse.json(data);
   } catch (err: any) {
+    // If fetch failed and we have stale cache, return that
+    if (cachedData) {
+      return NextResponse.json(cachedData.data);
+    }
     return NextResponse.json({ articles: [], error: `${err.name}: ${err.message}` });
   }
 }

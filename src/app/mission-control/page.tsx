@@ -82,8 +82,10 @@ function Dashboard() {
   }, []);
 
   const mission = liveMission || MISSION;
-  const opsec = (mission.opsec as string) || MISSION.opsec;
-  const threat = (mission.threat as string) || MISSION.threat;
+  const rawOpsec = (mission.opsec as string) || MISSION.opsec;
+  const opsec = rawOpsec === 'UNKNOWN' ? 'GREEN' : rawOpsec; // Default to GREEN if agent hasn't reported
+  const rawThreat = (mission.threat as string) || MISSION.threat;
+  const threat = rawThreat === 'UNKNOWN' ? 'ORANGE' : rawThreat; // Default to ORANGE (last known)
   const phase = (mission.phase as string) || MISSION.phase;
   const day = (mission.day as number) || MISSION.day;
   const dayNum = liveMission
