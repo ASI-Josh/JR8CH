@@ -380,34 +380,81 @@ function WorldMap({ events, selectedType, vigilOps }: {
       .filter(e => e.coords !== null) as (ConflictEvent & { coords: [number, number] })[];
   }, [events, selectedType]);
 
+  // Build country heat map — count events per country for fill color
+  const countryHeat = useMemo(() => {
+    const counts: Record<string, number> = {};
+    plottableEvents.forEach(e => {
+      const c = (e.country || '').toLowerCase();
+      if (c && c !== 'unknown') counts[c] = (counts[c] || 0) + 1;
+    });
+    return counts;
+  }, [plottableEvents]);
+
+  function getCountryFill(geoName: string): string {
+    const name = geoName.toLowerCase();
+    const count = countryHeat[name] || 0;
+    if (count === 0) return '#0d1520';
+    if (count === 1) return '#1a1a2e';
+    if (count <= 3) return '#2a1a1a';
+    if (count <= 6) return '#3d1515';
+    return '#4a1010';
+  }
+
   return (
-    <div className="relative bg-[#060a12] border border-[#1e2d44] rounded-xl overflow-hidden mb-4" style={{ borderTop: '2px solid #ef4444' }}>
+    <div className="relative bg-[#040810] border border-[#1e2d44] rounded-xl overflow-hidden mb-4" style={{ borderTop: '2px solid #ef4444' }}>
       {/* Map header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#0d1520] border-b border-[#1e2d44]">
-        <span className="font-mono text-[11px] font-bold text-slate-200 tracking-wider">GLOBAL THREAT MAP</span>
-        <span className="font-mono text-[9px] text-slate-500">{plottableEvents.length} PLOTTED EVENTS</span>
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#0a1018] border-b border-[#1e2d44]">
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center justify-center w-4 h-4">
+            <span className="absolute w-2 h-2 rounded-full bg-red-500 animate-ping opacity-50" />
+            <span className="relative w-1.5 h-1.5 rounded-full bg-red-500" />
+          </div>
+          <span className="font-mono text-[12px] font-bold text-slate-200 tracking-wider">GLOBAL THREAT MAP</span>
+        </div>
+        <span className="font-mono text-[10px] text-slate-500">{plottableEvents.length} PLOTTED {'\u2022'} {Object.keys(countryHeat).length} COUNTRIES</span>
       </div>
 
       {/* Map */}
-      <div className="relative" style={{ height: '420px' }}>
+      <div className="relative" style={{ height: '520px', background: 'radial-gradient(ellipse at center, #0a1225 0%, #040810 70%)' }}>
+        {/* Ocean grid effect */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(6,182,212,1) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,1) 1px, transparent 1px)',
+          backgroundSize: '30px 30px',
+        }} />
+
         <ComposableMap
-          projection="geoMercator"
-          projectionConfig={{ scale: 130, center: [20, 20] }}
+          projection="geoNaturalEarth1"
+          projectionConfig={{ scale: 160, center: [15, 15] }}
           style={{ width: '100%', height: '100%' }}
         >
-          <ZoomableGroup>
+          <ZoomableGroup minZoom={1} maxZoom={8}>
+            {/* Subtle graticule effect via defs */}
+            <defs>
+              <radialGradient id="markerGlow">
+                <stop offset="0%" stopColor="#ef4444" stopOpacity="0.6" />
+                <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+              </radialGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
             <Geographies geography={GEO_URL}>
               {({ geographies }) =>
                 geographies.map((geo) => (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill="#111b2a"
-                    stroke="#1e2d44"
-                    strokeWidth={0.5}
+                    fill={getCountryFill(geo.properties?.name || '')}
+                    stroke="#1a2740"
+                    strokeWidth={0.4}
                     style={{
-                      default: { outline: 'none' },
-                      hover: { fill: '#1a2740', outline: 'none' },
+                      default: { outline: 'none', transition: 'fill 0.3s' },
+                      hover: { fill: '#1e3050', outline: 'none', cursor: 'pointer' },
                       pressed: { outline: 'none' },
                     }}
                   />
@@ -415,84 +462,113 @@ function WorldMap({ events, selectedType, vigilOps }: {
               }
             </Geographies>
 
-            {/* Event markers */}
+            {/* Event markers — outer glow ring */}
             {plottableEvents.map((event, i) => {
               const cfg = EVENT_TYPES[event.type] || EVENT_TYPES['political-crisis'];
-              const size = Math.max(4, Math.min(12, event.intensity * 1.2));
+              const size = Math.max(5, Math.min(14, event.intensity * 1.3));
               return (
                 <Marker
                   key={`${event.id}-${i}`}
                   coordinates={event.coords}
                   onMouseEnter={(e) => {
                     const rect = (e.target as HTMLElement).closest('svg')?.getBoundingClientRect();
-                    if (rect) setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, content: event.title });
+                    if (rect) setTooltip({
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top,
+                      content: `${cfg.icon} ${event.title}\n${cfg.label} \u2022 Intensity: ${event.intensity}/10 \u2022 ${event.source}`,
+                    });
                   }}
                   onMouseLeave={() => setTooltip(null)}
                 >
-                  <circle
-                    r={size}
-                    fill={cfg.color}
-                    fillOpacity={0.35}
-                    stroke={cfg.color}
-                    strokeWidth={1}
-                  />
-                  <circle r={size * 0.4} fill={cfg.color} fillOpacity={0.9} />
-                  {event.intensity >= 7 && (
-                    <circle r={size * 1.5} fill="none" stroke={cfg.color} strokeWidth={0.5} opacity={0.3}>
-                      <animate attributeName="r" from={String(size)} to={String(size * 2)} dur="2s" repeatCount="indefinite" />
-                      <animate attributeName="opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite" />
-                    </circle>
+                  {/* Outer glow */}
+                  <circle r={size * 2} fill={cfg.color} fillOpacity={0.06} />
+                  {/* Mid ring */}
+                  <circle r={size} fill={cfg.color} fillOpacity={0.2} stroke={cfg.color} strokeWidth={0.8} strokeOpacity={0.4} />
+                  {/* Core dot */}
+                  <circle r={size * 0.35} fill={cfg.color} fillOpacity={1} filter="url(#glow)" />
+                  {/* Pulse animation for high intensity */}
+                  {event.intensity >= 6 && (
+                    <>
+                      <circle r={size} fill="none" stroke={cfg.color} strokeWidth={0.6} opacity={0.5}>
+                        <animate attributeName="r" from={String(size * 0.8)} to={String(size * 2.5)} dur="3s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" from="0.5" to="0" dur="3s" repeatCount="indefinite" />
+                      </circle>
+                      {event.intensity >= 8 && (
+                        <circle r={size} fill="none" stroke={cfg.color} strokeWidth={0.4} opacity={0.3}>
+                          <animate attributeName="r" from={String(size)} to={String(size * 3)} dur="4s" repeatCount="indefinite" begin="1.5s" />
+                          <animate attributeName="opacity" from="0.3" to="0" dur="4s" repeatCount="indefinite" begin="1.5s" />
+                        </circle>
+                      )}
+                    </>
                   )}
                 </Marker>
               );
             })}
 
-            {/* VIGIL operation markers */}
+            {/* VIGIL operation markers — diamond shape with glow */}
             {vigilOps.map((op) => (
               <Marker key={op.code} coordinates={[op.lng, op.lat]}>
-                <polygon
-                  points="-6,-8 6,-8 0,4"
-                  fill={op.color}
-                  fillOpacity={0.8}
-                  stroke={op.color}
-                  strokeWidth={1}
-                />
-                <text
-                  textAnchor="middle"
-                  y={-12}
-                  style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '7px', fill: op.color, fontWeight: 700 }}
-                >
+                {/* Glow ring */}
+                <circle r={16} fill={op.color} fillOpacity={0.05} />
+                <circle r={10} fill="none" stroke={op.color} strokeWidth={0.5} strokeOpacity={0.3} strokeDasharray="3,3">
+                  <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="20s" repeatCount="indefinite" />
+                </circle>
+                {/* Diamond */}
+                <polygon points="0,-7 5,0 0,7 -5,0" fill={op.color} fillOpacity={0.9} stroke={op.color} strokeWidth={1.5} filter="url(#glow)" />
+                {/* Label */}
+                <text textAnchor="middle" y={-13} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '8px', fill: op.color, fontWeight: 700, letterSpacing: '0.05em' }}>
                   {op.code}
+                </text>
+                <text textAnchor="middle" y={18} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '5px', fill: op.color, fontWeight: 400, opacity: 0.7 }}>
+                  {op.name}
                 </text>
               </Marker>
             ))}
           </ZoomableGroup>
         </ComposableMap>
 
-        {/* Tooltip */}
+        {/* Enhanced tooltip */}
         {tooltip && (
           <div
-            className="absolute pointer-events-none bg-[#0d1520] border border-[#2a3550] rounded px-2 py-1 text-[10px] text-slate-200 max-w-[200px] z-10"
-            style={{ left: tooltip.x + 10, top: tooltip.y - 10 }}
+            className="absolute pointer-events-none z-20 max-w-[280px]"
+            style={{ left: Math.min(tooltip.x + 12, 600), top: Math.max(tooltip.y - 20, 10) }}
           >
-            {tooltip.content}
+            <div className="bg-[#0a1018]/95 backdrop-blur-sm border border-[#2a3f5f] rounded-lg px-3 py-2 shadow-xl shadow-black/50">
+              {tooltip.content.split('\n').map((line, i) => (
+                <div key={i} className={i === 0 ? 'text-[11px] text-slate-200 font-medium leading-snug' : 'text-[9px] text-slate-400 mt-1 font-mono'}>
+                  {line}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {/* Legend */}
-        <div className="absolute bottom-2 left-2 bg-[#0a0f1a]/90 border border-[#1e2d44] rounded-lg px-2.5 py-2">
-          <div className="flex flex-wrap gap-x-3 gap-y-1">
+        <div className="absolute bottom-3 left-3 bg-[#0a0f1a]/95 backdrop-blur-sm border border-[#1e2d44] rounded-lg px-3 py-2.5">
+          <div className="text-[8px] text-slate-500 font-mono font-bold mb-1.5 tracking-wider">EVENT TYPES</div>
+          <div className="grid grid-cols-3 gap-x-4 gap-y-1">
             {Object.entries(EVENT_TYPES).map(([, cfg]) => (
-              <div key={cfg.label} className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.color }} />
-                <span className="text-[8px] text-slate-500">{cfg.label}</span>
+              <div key={cfg.label} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.color, boxShadow: `0 0 4px ${cfg.color}60` }} />
+                <span className="text-[9px] text-slate-400">{cfg.label}</span>
               </div>
             ))}
-            <div className="flex items-center gap-1">
-              <span className="text-[8px] text-slate-400">{'\u25B2'}</span>
-              <span className="text-[8px] text-slate-500">VIGIL OP</span>
+          </div>
+          <div className="mt-1.5 pt-1.5 border-t border-[#1e2d44] flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[9px] text-cyan-500">{'\u25C6'}</span>
+              <span className="text-[9px] text-slate-400">VIGIL OP</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-2 rounded-sm" style={{ background: 'linear-gradient(90deg, #0d1520, #4a1010)' }} />
+              <span className="text-[9px] text-slate-400">Heat density</span>
             </div>
           </div>
+        </div>
+
+        {/* Zoom hint */}
+        <div className="absolute top-3 right-3 text-[9px] text-slate-600 font-mono">
+          SCROLL TO ZOOM {'\u2022'} DRAG TO PAN
         </div>
       </div>
     </div>
