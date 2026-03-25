@@ -169,53 +169,83 @@ export default function OverviewTab() {
           </div>
         </Card>
 
-        {/* Communications */}
+        {/* Communications — live from VPS when available */}
         <Card title="Communications" icon="&#x1F4E1;" accent="#10b981">
-          {COMMS_CHANNELS.map((ch, i) => (
-            <div key={i} className="flex items-center justify-between py-1.5 px-2.5 rounded bg-white/[.02] mb-1">
-              <div className="flex items-center gap-1.5">
-                <Dot color={ch.dead ? '#ef4444' : ch.active ? '#10b981' : '#64748b'} pulse={ch.active && !ch.dead} />
-                <span className={`text-[11px] ${ch.dead ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{ch.name}</span>
+          {(() => {
+            const liveComms = [
+              { name: 'Dead Drop (VPS C2)', active: true, dead: false, live: !!agents?.clarion },
+              { name: `Signal (${agents?.clarion?.status === 'ACTIVE' ? 'Agent Online' : 'Standby'})`, active: agents?.clarion?.status === 'ACTIVE', dead: false },
+              { name: 'WhatsApp (DISBANDED — OPSEC)', active: false, dead: true },
+              { name: 'Moltbook API', active: agents?.clarion?.status === 'ACTIVE', dead: false },
+              { name: 'Intel Exchange (Cross-Project)', active: !!live, dead: false },
+              { name: 'VPS API (ops.jr8ch.com)', active: !!live, dead: false },
+              { name: 'MC Analyst (Hourly)', active: !!mcStatus, dead: false },
+            ];
+            const comms = live ? liveComms : COMMS_CHANNELS;
+            return comms.map((ch, i) => (
+              <div key={i} className="flex items-center justify-between py-1.5 px-2.5 rounded bg-white/[.02] mb-1">
+                <div className="flex items-center gap-1.5">
+                  <Dot color={ch.dead ? '#ef4444' : ch.active ? '#10b981' : '#64748b'} pulse={ch.active && !ch.dead} />
+                  <span className={`text-[11px] ${ch.dead ? 'text-slate-500 line-through' : 'text-slate-200'}`}>{ch.name}</span>
+                </div>
+                <span className="font-mono text-[9px]" style={{ color: ch.dead ? '#ef4444' : ch.active ? '#10b981' : '#64748b' }}>
+                  {ch.dead ? 'META RISK' : ch.active ? 'ACTIVE' : 'OFF'}
+                </span>
               </div>
-              <span className="font-mono text-[9px]" style={{ color: ch.dead ? '#ef4444' : ch.active ? '#10b981' : '#64748b' }}>
-                {ch.dead ? 'META RISK' : ch.active ? 'ACTIVE' : 'OFF'}
-              </span>
-            </div>
-          ))}
+            ));
+          })()}
         </Card>
       </div>
 
-      {/* Critical Events — Threat Level ELEVATED */}
-      <Card title="Critical Events — ELEVATED" icon="&#x26A1;" accent="#ef4444" full>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-4 p-2.5 px-3.5 bg-red-500/[.08] border border-red-500/20 rounded-lg">
-            <div className="font-mono text-xl font-bold text-red-400 min-w-[90px]">APR 02</div>
-            <div>
-              <div className="text-sm font-semibold">BofA Settlement Hearing</div>
-              <div className="text-xs text-slate-400 mt-1">
-                May seal or release internal compliance docs showing what BofA knew about Epstein financial operations incl. $170M Black pipeline.
+      {/* Latest Strategy Orders — live from VPS */}
+      <Card title={`Latest Strategy ${live?.latestStrategy ? '— LIVE' : '— STATIC'}`} icon="&#x26A1;" accent="#ef4444" full>
+        {live?.latestStrategy ? (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-mono text-[10px] text-slate-500">
+                {(live.latestStrategy as Record<string, unknown>).filename as string}
+              </span>
+              <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400">
+                {((live.latestStrategy as Record<string, unknown>).orderCount as number) || 0} ORDERS
+              </span>
+            </div>
+            {((live.latestStrategy as Record<string, unknown>).sections as string[] || []).map((section: string, i: number) => (
+              <div key={i} className="text-[11px] text-slate-400 py-1 px-2.5 rounded bg-white/[.02]">
+                {section}
+              </div>
+            ))}
+            {((live.latestStrategy as Record<string, unknown>).orders as Array<{id: number; text: string}> || []).map((order, i: number) => (
+              <div key={i} className="flex items-start gap-2 p-2.5 px-3.5 bg-orange-500/[.05] border border-orange-500/15 rounded-lg">
+                <span className="font-mono text-sm font-bold text-orange-400 shrink-0">#{order.id}</span>
+                <span className="text-[12px] text-slate-300">{order.text}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-4 p-2.5 px-3.5 bg-red-500/[.08] border border-red-500/20 rounded-lg">
+              <div className="font-mono text-xl font-bold text-red-400 min-w-[90px]">APR 02</div>
+              <div>
+                <div className="text-sm font-semibold">BofA Settlement Hearing</div>
+                <div className="text-xs text-slate-400 mt-1">May seal or release internal compliance docs showing what BofA knew about Epstein financial operations.</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-2.5 px-3.5 bg-orange-500/[.08] border border-orange-500/20 rounded-lg">
+              <div className="font-mono text-xl font-bold text-orange-400 min-w-[90px]">APR 13</div>
+              <div>
+                <div className="text-sm font-semibold">Leon Black Response Deadline (Wyden)</div>
+                <div className="text-xs text-slate-400 mt-1">Must address $170M payments, surveillance of women via Paul Weiss.</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-2.5 px-3.5 bg-yellow-500/[.08] border border-yellow-500/20 rounded-lg">
+              <div className="font-mono text-xl font-bold text-yellow-500 min-w-[90px]">APR 14</div>
+              <div>
+                <div className="text-sm font-semibold">Bondi Deposition — House Oversight Committee</div>
+                <div className="text-xs text-slate-400 mt-1">First AG testimony under oath about selective suppression.</div>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4 p-2.5 px-3.5 bg-orange-500/[.08] border border-orange-500/20 rounded-lg">
-            <div className="font-mono text-xl font-bold text-orange-400 min-w-[90px]">APR 13</div>
-            <div>
-              <div className="text-sm font-semibold">Leon Black Response Deadline (Wyden)</div>
-              <div className="text-xs text-slate-400 mt-1">
-                Must address $170M payments, surveillance of women via Paul Weiss, sharing locations with Russian operative.
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 p-2.5 px-3.5 bg-yellow-500/[.08] border border-yellow-500/20 rounded-lg">
-            <div className="font-mono text-xl font-bold text-yellow-500 min-w-[90px]">APR 14</div>
-            <div>
-              <div className="text-sm font-semibold">Bondi Deposition — House Oversight Committee</div>
-              <div className="text-xs text-slate-400 mt-1">
-                AT RISK — GOP coalition fracturing. Boebert wavering (projective identification). Mace holding firm. First AG testimony under oath about selective suppression.
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </Card>
 
       {/* Live Intel Feed */}
