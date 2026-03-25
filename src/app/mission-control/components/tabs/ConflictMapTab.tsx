@@ -1,6 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+} from 'react-simple-maps';
 
 // ===================== TYPES =====================
 
@@ -91,17 +98,7 @@ function parseGDELTResponse(articles: Array<Record<string, string>>): ConflictEv
 
 async function fetchGDELTEvents(query: string = 'conflict OR war OR crisis'): Promise<ConflictEvent[]> {
   try {
-    const params = new URLSearchParams({
-      query: `${query} sourcelang:english`,
-      mode: 'artlist',
-      maxrecords: '50',
-      format: 'json',
-      sort: 'datedesc',
-      timespan: '24h',
-    });
-
-    const res = await fetch(`${GDELT_API}?${params}`);
-    if (!res.ok) throw new Error(`GDELT API error: ${res.status}`);
+    const res = await fetch(`${GDELT_API}?query=${encodeURIComponent(query + ' sourcelang:english')}`);
     const data = await res.json();
     return parseGDELTResponse(data.articles || []);
   } catch (err) {
@@ -336,6 +333,172 @@ function VIGILOverlay() {
   );
 }
 
+// ===================== WORLD MAP =====================
+
+const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+
+// Country centroids for plotting events by country name
+const COUNTRY_COORDS: Record<string, [number, number]> = {
+  'united states': [-98.5, 39.8], 'united kingdom': [-1.2, 52.3], 'russia': [105, 61],
+  'china': [104, 35], 'ukraine': [32, 48.3], 'israel': [34.8, 31.5], 'iran': [53, 32.4],
+  'syria': [38, 35], 'iraq': [44, 33], 'afghanistan': [67, 33], 'pakistan': [69, 30],
+  'india': [79, 21], 'australia': [134, -25], 'france': [2.2, 46.2], 'germany': [10.4, 51.2],
+  'turkey': [35.2, 39], 'saudi arabia': [45, 24], 'egypt': [30, 27], 'nigeria': [8, 10],
+  'south africa': [25, -29], 'brazil': [-51, -14], 'mexico': [-102, 23.6], 'japan': [138, 36],
+  'south korea': [128, 36], 'north korea': [127, 40], 'taiwan': [121, 23.5],
+  'yemen': [48, 15.5], 'libya': [17, 27], 'sudan': [30, 15], 'somalia': [46, 6],
+  'ethiopia': [40, 9], 'congo': [25, -3], 'myanmar': [96, 19], 'thailand': [101, 15],
+  'philippines': [122, 12], 'indonesia': [113, -2], 'canada': [-106, 56],
+  'poland': [20, 52], 'romania': [25, 46], 'lebanon': [35.8, 33.8], 'jordan': [36.2, 31.2],
+  'palestine': [35.2, 31.9], 'gaza': [34.4, 31.4], 'mali': [-2, 17], 'niger': [8, 17],
+  'chad': [19, 15], 'mozambique': [35, -18], 'burkina faso': [-1.5, 12.3],
+};
+
+function getEventCoords(event: ConflictEvent): [number, number] | null {
+  if (event.lat && event.lng) return [event.lng, event.lat];
+  const country = (event.country || '').toLowerCase();
+  if (COUNTRY_COORDS[country]) return COUNTRY_COORDS[country];
+  // Try matching partial country name from title
+  const titleLower = event.title.toLowerCase();
+  for (const [name, coords] of Object.entries(COUNTRY_COORDS)) {
+    if (titleLower.includes(name)) return coords;
+  }
+  return null;
+}
+
+function WorldMap({ events, selectedType, vigilOps }: {
+  events: ConflictEvent[];
+  selectedType: string | null;
+  vigilOps: VIGILOperation[];
+}) {
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
+
+  const plottableEvents = useMemo(() => {
+    const filtered = selectedType ? events.filter(e => e.type === selectedType) : events;
+    return filtered
+      .map(e => ({ ...e, coords: getEventCoords(e) }))
+      .filter(e => e.coords !== null) as (ConflictEvent & { coords: [number, number] })[];
+  }, [events, selectedType]);
+
+  return (
+    <div className="relative bg-[#060a12] border border-[#1e2d44] rounded-xl overflow-hidden mb-4" style={{ borderTop: '2px solid #ef4444' }}>
+      {/* Map header */}
+      <div className="flex items-center justify-between px-4 py-2 bg-[#0d1520] border-b border-[#1e2d44]">
+        <span className="font-mono text-[11px] font-bold text-slate-200 tracking-wider">GLOBAL THREAT MAP</span>
+        <span className="font-mono text-[9px] text-slate-500">{plottableEvents.length} PLOTTED EVENTS</span>
+      </div>
+
+      {/* Map */}
+      <div className="relative" style={{ height: '420px' }}>
+        <ComposableMap
+          projection="geoMercator"
+          projectionConfig={{ scale: 130, center: [20, 20] }}
+          style={{ width: '100%', height: '100%' }}
+        >
+          <ZoomableGroup>
+            <Geographies geography={GEO_URL}>
+              {({ geographies }) =>
+                geographies.map((geo) => (
+                  <Geography
+                    key={geo.rsmKey}
+                    geography={geo}
+                    fill="#111b2a"
+                    stroke="#1e2d44"
+                    strokeWidth={0.5}
+                    style={{
+                      default: { outline: 'none' },
+                      hover: { fill: '#1a2740', outline: 'none' },
+                      pressed: { outline: 'none' },
+                    }}
+                  />
+                ))
+              }
+            </Geographies>
+
+            {/* Event markers */}
+            {plottableEvents.map((event, i) => {
+              const cfg = EVENT_TYPES[event.type] || EVENT_TYPES['political-crisis'];
+              const size = Math.max(4, Math.min(12, event.intensity * 1.2));
+              return (
+                <Marker
+                  key={`${event.id}-${i}`}
+                  coordinates={event.coords}
+                  onMouseEnter={(e) => {
+                    const rect = (e.target as HTMLElement).closest('svg')?.getBoundingClientRect();
+                    if (rect) setTooltip({ x: e.clientX - rect.left, y: e.clientY - rect.top, content: event.title });
+                  }}
+                  onMouseLeave={() => setTooltip(null)}
+                >
+                  <circle
+                    r={size}
+                    fill={cfg.color}
+                    fillOpacity={0.35}
+                    stroke={cfg.color}
+                    strokeWidth={1}
+                  />
+                  <circle r={size * 0.4} fill={cfg.color} fillOpacity={0.9} />
+                  {event.intensity >= 7 && (
+                    <circle r={size * 1.5} fill="none" stroke={cfg.color} strokeWidth={0.5} opacity={0.3}>
+                      <animate attributeName="r" from={String(size)} to={String(size * 2)} dur="2s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" from="0.4" to="0" dur="2s" repeatCount="indefinite" />
+                    </circle>
+                  )}
+                </Marker>
+              );
+            })}
+
+            {/* VIGIL operation markers */}
+            {vigilOps.map((op) => (
+              <Marker key={op.code} coordinates={[op.lng, op.lat]}>
+                <polygon
+                  points="-6,-8 6,-8 0,4"
+                  fill={op.color}
+                  fillOpacity={0.8}
+                  stroke={op.color}
+                  strokeWidth={1}
+                />
+                <text
+                  textAnchor="middle"
+                  y={-12}
+                  style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '7px', fill: op.color, fontWeight: 700 }}
+                >
+                  {op.code}
+                </text>
+              </Marker>
+            ))}
+          </ZoomableGroup>
+        </ComposableMap>
+
+        {/* Tooltip */}
+        {tooltip && (
+          <div
+            className="absolute pointer-events-none bg-[#0d1520] border border-[#2a3550] rounded px-2 py-1 text-[10px] text-slate-200 max-w-[200px] z-10"
+            style={{ left: tooltip.x + 10, top: tooltip.y - 10 }}
+          >
+            {tooltip.content}
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="absolute bottom-2 left-2 bg-[#0a0f1a]/90 border border-[#1e2d44] rounded-lg px-2.5 py-2">
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
+            {Object.entries(EVENT_TYPES).map(([, cfg]) => (
+              <div key={cfg.label} className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.color }} />
+                <span className="text-[8px] text-slate-500">{cfg.label}</span>
+              </div>
+            ))}
+            <div className="flex items-center gap-1">
+              <span className="text-[8px] text-slate-400">{'\u25B2'}</span>
+              <span className="text-[8px] text-slate-500">VIGIL OP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ===================== MAIN COMPONENT =====================
 
 export default function ConflictMapTab() {
@@ -463,6 +626,11 @@ export default function ConflictMapTab() {
       {/* Stats bar */}
       {events.length > 0 && <StatsBar events={events} />}
 
+      {/* Interactive World Map */}
+      {events.length > 0 && (
+        <WorldMap events={events} selectedType={selectedType} vigilOps={VIGIL_OPS} />
+      )}
+
       {/* Main content area */}
       <div className="bg-[#111b2a] border border-[#1e2d44] rounded-xl overflow-hidden" style={{ borderTop: '2px solid #ef4444' }}>
         {/* Feed header */}
@@ -507,17 +675,6 @@ export default function ConflictMapTab() {
         </span>
       </div>
 
-      {/* Phase 2 notice for interactive map */}
-      <div
-        className="mt-4 p-3 rounded-lg text-center"
-        style={{ background: 'rgba(245,158,11,.04)', border: '1px solid rgba(245,158,11,.15)' }}
-      >
-        <div className="font-mono text-[10px] text-amber-400 mb-1">PHASE 2: INTERACTIVE MAP</div>
-        <div className="text-[10px] text-slate-500">
-          Full interactive 3D globe with event plotting, heat maps, and VIGIL operation overlays.
-          Requires react-simple-maps + D3 integration. Currently showing feed view.
-        </div>
-      </div>
     </div>
   );
 }
