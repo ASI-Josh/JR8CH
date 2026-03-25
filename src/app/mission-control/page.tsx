@@ -51,6 +51,7 @@ function Dashboard() {
   const { user, profile, loading, logout, isAdmin } = useAuth();
   const [tab, setTab] = useState('overview');
   const [showAdmin, setShowAdmin] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [ops, setOps] = useState<Operation[]>(OPERATIONS);
   const [currentOp, setCurrentOp] = useState<Operation>(OPERATIONS[0]);
   const isLumen = currentOp.id === 'op-001';
@@ -94,165 +95,180 @@ function Dashboard() {
     );
   }
 
+  const allTabs = [...BASE_TABS, ...(isAdmin ? ADMIN_TABS : [])];
+
+  const NAV_SECTIONS = [
+    { label: 'Operations', items: allTabs.filter(t => ['overview', 'threats', 'scout', 'allies'].includes(t.id)) },
+    { label: 'Intelligence', items: allTabs.filter(t => ['intel', 'orders', 'exchange', 'epstein'].includes(t.id)) },
+    { label: 'Analysis', items: allTabs.filter(t => ['timeline', 'cms', 'oracle', 'atlas'].includes(t.id)) },
+    { label: 'Tools', items: allTabs.filter(t => ['notebook', 'gateway', 'comms'].includes(t.id)) },
+  ].filter(s => s.items.length > 0);
+
   return (
-    <div>
-      {/* ===== HEADER ===== */}
-      <div className="sticky top-0 z-50 bg-[#060a12]/97 backdrop-blur-xl border-b border-[#2a3550]">
-        {/* Top bar — stacks on mobile */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center px-4 md:px-7 py-3">
-          {/* Row 1 on mobile: Logo + Op Selector + User */}
-          <div className="flex items-center justify-between w-full md:w-auto">
-            {/* Left: VIGIL Logo + Agency Name */}
-            <div className="flex items-center gap-3">
-              <img
-                src="/images/brand/vigil-logo.png"
-                alt="VIGIL"
-                className="w-9 h-9 md:w-10 md:h-10 rounded-lg object-contain"
-              />
-              <div>
-                <h1
-                  className="text-base md:text-lg font-bold tracking-[.2em] text-cyan-400"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
-                  VIGIL
-                </h1>
-                <div className="text-xs text-slate-500">Mission Control</div>
-              </div>
+    <div className="flex h-screen overflow-hidden">
+      {/* ===== SIDEBAR ===== */}
+      <aside
+        className={`fixed md:relative z-50 h-full bg-[#0a0f1a] border-r border-[#1e2d44] flex flex-col transition-all duration-200 ${
+          sidebarOpen ? 'w-56' : 'w-14'
+        }`}
+      >
+        {/* Logo + Toggle */}
+        <div className="flex items-center gap-2.5 px-3 py-4 border-b border-[#1e2d44]">
+          <img
+            src="/images/brand/vigil-logo.png"
+            alt="VIGIL"
+            className="w-8 h-8 shrink-0 object-contain cursor-pointer"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          />
+          {sidebarOpen && (
+            <div className="min-w-0">
+              <h1 className="text-sm font-bold tracking-[.2em] text-cyan-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                VIGIL
+              </h1>
+              <div className="text-[10px] text-slate-500 truncate">Mission Control</div>
             </div>
+          )}
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="ml-auto text-slate-500 hover:text-slate-300 text-sm shrink-0"
+          >
+            {sidebarOpen ? '\u2190' : '\u2192'}
+          </button>
+        </div>
 
-            {/* Mobile: user controls */}
-            <div className="flex md:hidden items-center gap-2">
-              {isAdmin && (
-                <button onClick={() => setShowAdmin(true)} className="text-xs text-blue-400 hover:text-blue-300 font-mono">ADMIN</button>
-              )}
-              <button onClick={logout} className="text-xs text-slate-500 hover:text-red-400 font-mono">LOGOUT</button>
-            </div>
-          </div>
-
-          {/* Center: Operation Selector */}
-          <div className="flex items-center justify-center my-2 md:my-0">
+        {/* Operation Selector */}
+        {sidebarOpen && (
+          <div className="px-2 py-3 border-b border-[#1e2d44]">
             <OperationSelector current={currentOp} operations={ops} onSelect={setCurrentOp} onAddOperation={handleAddOperation} />
           </div>
+        )}
 
-          {/* Right: Status + User (desktop only) */}
-          <div className="hidden md:flex items-center gap-5">
-            <div className="text-right">
-              <div className="flex items-center gap-1.5 justify-end">
-                <Dot color="#10b981" pulse />
-                <span className="font-mono text-xs font-medium text-green-500">OPSEC {MISSION.opsec}</span>
-              </div>
-              <div className="flex items-center gap-1.5 justify-end mt-1">
-                <Dot color="#f97316" />
-                <span className="font-mono text-xs font-medium text-orange-500">THREAT {currentOp.threatLevel}</span>
-              </div>
+        {/* Status indicators */}
+        <div className={`px-3 py-2 border-b border-[#1e2d44] ${sidebarOpen ? '' : 'flex flex-col items-center gap-1'}`}>
+          <div className="flex items-center gap-1.5">
+            <Dot color="#10b981" pulse />
+            {sidebarOpen && <span className="font-mono text-[11px] font-medium text-green-500">OPSEC {MISSION.opsec}</span>}
+          </div>
+          <div className="flex items-center gap-1.5 mt-1">
+            <Dot color="#f97316" />
+            {sidebarOpen && <span className="font-mono text-[11px] font-medium text-orange-500">THREAT {currentOp.threatLevel}</span>}
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-2">
+          {NAV_SECTIONS.map(section => (
+            <div key={section.label} className="mb-1">
+              {sidebarOpen && (
+                <div className="px-3 py-1.5 text-[9px] font-bold text-slate-600 uppercase tracking-[.15em]">{section.label}</div>
+              )}
+              {section.items.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => { setTab(t.id); if (window.innerWidth < 768) setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all ${
+                    tab === t.id
+                      ? 'bg-cyan-500/10 text-cyan-400 border-l-2 border-cyan-400'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[.03] border-l-2 border-transparent'
+                  }`}
+                >
+                  <span className={`text-[13px] font-medium truncate ${sidebarOpen ? '' : 'hidden'}`}>{t.label}</span>
+                  {!sidebarOpen && <span className="text-[10px] font-mono mx-auto">{t.label.slice(0, 2).toUpperCase()}</span>}
+                </button>
+              ))}
             </div>
-            <div
-              className="text-right border-l border-[#2a3550] pl-4"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}
-            >
-              <div className="text-xs text-slate-500 font-medium">DAY {MISSION.day}</div>
-              <div className="text-xs text-cyan-400 mt-0.5 font-medium">{MISSION.phase}</div>
-            </div>
-            <div className="border-l border-[#2a3550] pl-4 flex items-center gap-3">
-              <div className="text-right">
+          ))}
+        </nav>
+
+        {/* User + Logout at bottom */}
+        <div className="border-t border-[#1e2d44] px-3 py-3">
+          {sidebarOpen ? (
+            <div className="flex items-center justify-between">
+              <div>
                 <div className="text-xs text-slate-300 font-medium">{profile.displayName}</div>
-                <div className="font-mono text-[11px] text-slate-500">{profile.role.toUpperCase()}</div>
+                <div className="font-mono text-[10px] text-slate-500">{profile.role.toUpperCase()} &bull; DAY {MISSION.day}</div>
               </div>
               <div className="flex flex-col gap-1">
                 {isAdmin && (
-                  <button
-                    onClick={() => setShowAdmin(true)}
-                    className="text-[11px] text-blue-400 hover:text-blue-300 font-mono font-medium"
-                  >
-                    ADMIN
-                  </button>
+                  <button onClick={() => setShowAdmin(true)} className="text-[10px] text-blue-400 hover:text-blue-300 font-mono">ADMIN</button>
                 )}
-                <button
-                  onClick={logout}
-                  className="text-[11px] text-slate-500 hover:text-red-400 font-mono font-medium"
-                >
-                  LOGOUT
-                </button>
+                <button onClick={logout} className="text-[10px] text-slate-500 hover:text-red-400 font-mono">LOGOUT</button>
               </div>
             </div>
+          ) : (
+            <button onClick={logout} className="w-full text-center text-[10px] text-slate-500 hover:text-red-400 font-mono">OUT</button>
+          )}
+        </div>
+      </aside>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* ===== MAIN CONTENT ===== */}
+      <main className="flex-1 overflow-y-auto">
+        {/* Mobile top bar */}
+        <div className="md:hidden sticky top-0 z-30 bg-[#060a12]/95 backdrop-blur-xl border-b border-[#2a3550] px-4 py-2.5 flex items-center justify-between">
+          <button onClick={() => setSidebarOpen(true)} className="text-slate-400 hover:text-slate-200 text-lg">{'\u2630'}</button>
+          <span className="font-mono text-xs text-cyan-400 font-bold tracking-wider">
+            {allTabs.find(t => t.id === tab)?.label?.toUpperCase() || 'VIGIL'}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <Dot color="#10b981" pulse />
+            <Dot color="#f97316" />
           </div>
         </div>
 
-        {/* ===== TABS ===== */}
-        <div className="flex gap-px px-4 md:px-7 bg-[#111827] border-t border-[#2a3550] overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {[...BASE_TABS, ...(isAdmin ? ADMIN_TABS : [])].map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className="py-2.5 px-2.5 md:px-4 text-[11px] md:text-xs font-semibold tracking-wider whitespace-nowrap transition-all"
-              style={{
-                background: tab === t.id ? '#1a2235' : 'transparent',
-                color: tab === t.id ? '#06b6d4' : '#64748b',
-                borderBottom: tab === t.id ? '2px solid #06b6d4' : '2px solid transparent',
-              }}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="p-4 md:p-6 md:px-8 relative z-10">
+          {tab === 'oracle' && <OracleTab />}
+          {tab === 'atlas' && <ConflictMapTab />}
+          {isAdmin && tab === 'gateway' && <GatewayTab />}
+          {isAdmin && tab === 'comms' && <AgentCommsTab />}
+          {tab !== 'oracle' && tab !== 'atlas' && tab !== 'gateway' && tab !== 'comms' && (
+            isLumen ? (
+              <>
+                {tab === 'overview' && <OverviewTab />}
+                {tab === 'threats' && <ThreatsTab />}
+                {tab === 'scout' && <ScoutTab />}
+                {tab === 'allies' && <AlliesTab />}
+                {tab === 'intel' && <IntelReportsTab />}
+                {tab === 'orders' && <OrdersTab />}
+                {tab === 'exchange' && <IntelExchangeTab />}
+                {tab === 'epstein' && <EpsteinIntelTab />}
+                {tab === 'timeline' && <TimelineTab />}
+                {tab === 'cms' && <CounterMeasuresTab />}
+                {tab === 'notebook' && <NotebookTab />}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-24 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-[#111827] border border-[#2a3550] flex items-center justify-center mb-4">
+                  <span className="text-2xl opacity-40">&#x1F4C1;</span>
+                </div>
+                <h3 className="text-lg font-bold tracking-wider text-slate-400 mb-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {currentOp.codename}
+                </h3>
+                <p className="text-sm text-slate-600 max-w-md">{currentOp.description}</p>
+                <div className="mt-4 px-4 py-2 rounded-lg bg-[#111827] border border-[#2a3550]">
+                  <span className="text-xs text-slate-500 font-mono">
+                    {currentOp.status === 'standby'
+                      ? 'Operation registered. No active missions.'
+                      : `${currentOp.missions.length} mission(s) registered. Dashboard data pending.`}
+                  </span>
+                </div>
+              </div>
+            )
+          )}
         </div>
-      </div>
 
-      {/* ===== CONTENT ===== */}
-      <div className="p-4 md:p-6 md:px-8 relative z-10">
-        {/* Tabs that render for all operations */}
-        {tab === 'oracle' && <OracleTab />}
-        {tab === 'atlas' && <ConflictMapTab />}
-        {isAdmin && tab === 'gateway' && <GatewayTab />}
-        {isAdmin && tab === 'comms' && <AgentCommsTab />}
-        {tab !== 'oracle' && tab !== 'atlas' && tab !== 'gateway' && tab !== 'comms' && (
-          isLumen ? (
-            <>
-              {tab === 'overview' && <OverviewTab />}
-              {tab === 'threats' && <ThreatsTab />}
-              {tab === 'scout' && <ScoutTab />}
-              {tab === 'allies' && <AlliesTab />}
-              {tab === 'intel' && <IntelReportsTab />}
-              {tab === 'orders' && <OrdersTab />}
-              {tab === 'exchange' && <IntelExchangeTab />}
-              {tab === 'epstein' && <EpsteinIntelTab />}
-              {tab === 'timeline' && <TimelineTab />}
-              {tab === 'cms' && <CounterMeasuresTab />}
-              {tab === 'notebook' && <NotebookTab />}
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#111827] border border-[#2a3550] flex items-center justify-center mb-4">
-                <span className="text-2xl opacity-40">&#x1F4C1;</span>
-              </div>
-              <h3
-                className="text-lg font-bold tracking-wider text-slate-400 mb-2"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
-                {currentOp.codename}
-              </h3>
-              <p className="text-sm text-slate-600 max-w-md">{currentOp.description}</p>
-              <div className="mt-4 px-4 py-2 rounded-lg bg-[#111827] border border-[#2a3550]">
-                <span className="text-xs text-slate-500 font-mono">
-                  {currentOp.status === 'standby'
-                    ? 'Operation registered. No active missions.'
-                    : `${currentOp.missions.length} mission(s) registered. Dashboard data pending.`}
-                </span>
-              </div>
-            </div>
-          )
-        )}
-      </div>
-
-      {/* ===== FOOTER ===== */}
-      <div className="text-center py-8">
-        <img src="/images/brand/vigil-logo.png" alt="VIGIL" className="w-8 h-8 mx-auto mb-3 opacity-20 object-contain" />
-        <p
-          className="text-xs text-slate-600 tracking-widest font-medium"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          VIGIL &bull; KEEPING WATCH THROUGH THE DARKNESS &bull; EST. 2026
-        </p>
-      </div>
+        {/* Footer */}
+        <div className="text-center py-8">
+          <img src="/images/brand/vigil-logo.png" alt="VIGIL" className="w-8 h-8 mx-auto mb-3 opacity-20 object-contain" />
+          <p className="text-xs text-slate-600 tracking-widest font-medium" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            VIGIL &bull; KEEPING WATCH THROUGH THE DARKNESS &bull; EST. 2026
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

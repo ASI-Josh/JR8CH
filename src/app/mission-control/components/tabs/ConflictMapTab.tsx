@@ -31,7 +31,7 @@ interface VIGILOperation {
 
 // ===================== CONFIG =====================
 
-const GDELT_API = 'https://api.gdeltproject.org/api/v2/doc/doc';
+const GDELT_API = '/api/gdelt-proxy';
 
 // VIGIL operation locations for map overlay
 const VIGIL_OPS: VIGILOperation[] = [
