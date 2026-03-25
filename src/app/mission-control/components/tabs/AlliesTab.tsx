@@ -1,12 +1,34 @@
 'use client';
 
-import React from 'react';
-import { Badge, TrustLadder } from '../ui';
+import React, { useState, useEffect } from 'react';
+import { Badge, Dot, TrustLadder } from '../ui';
 import { ALLIES } from '../../lib/mission-data';
 
+const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
+const API_KEY = process.env.NEXT_PUBLIC_VIGIL_API_KEY || '';
+
 export default function AlliesTab() {
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    if (!API_KEY) return;
+    async function checkVPS() {
+      try {
+        const res = await fetch(`${VPS_API}/api/mission/allies`, { headers: { 'x-api-key': API_KEY } });
+        if (res.ok) setIsLive(true);
+      } catch { /* fall back */ }
+    }
+    checkVPS();
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 px-1">
+        <Dot color={isLive ? '#10b981' : '#f59e0b'} pulse={isLive} />
+        <span className="font-mono text-[10px] tracking-wider" style={{ color: isLive ? '#10b981' : '#f59e0b' }}>
+          {isLive ? `LIVE — VPS CONNECTED · ${ALLIES.length} ALLIES TRACKED` : 'STATIC DATA — VPS UNREACHABLE'}
+        </span>
+      </div>
       {/* Trust Ladder Legend */}
       <div className="flex items-center gap-3">
         <span className="text-xs font-semibold">Trust Ladder:</span>

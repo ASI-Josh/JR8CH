@@ -1,12 +1,34 @@
 'use client';
 
-import React from 'react';
-import { Badge, Card } from '../ui';
+import React, { useState, useEffect } from 'react';
+import { Badge, Card, Dot } from '../ui';
 import { PATTERN_MATCHES, SHARED_ENTITIES } from '../../lib/mission-data';
 
+const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
+const API_KEY = process.env.NEXT_PUBLIC_VIGIL_API_KEY || '';
+
 export default function IntelExchangeTab() {
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    if (!API_KEY) return;
+    async function checkVPS() {
+      try {
+        const res = await fetch(`${VPS_API}/api/health`);
+        if (res.ok) setIsLive(true);
+      } catch { /* fall back */ }
+    }
+    checkVPS();
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 px-1">
+        <Dot color={isLive ? '#10b981' : '#f59e0b'} pulse={isLive} />
+        <span className="font-mono text-[10px] tracking-wider" style={{ color: isLive ? '#10b981' : '#f59e0b' }}>
+          {isLive ? `LIVE — VPS CONNECTED · ${PATTERN_MATCHES.length} PATTERNS · ${SHARED_ENTITIES.length} ENTITIES` : 'STATIC DATA — VPS UNREACHABLE'}
+        </span>
+      </div>
       {/* Header */}
       <div className="text-xs text-slate-400 p-3 px-3.5 bg-cyan-500/[.08] border border-cyan-500/20 rounded-lg leading-relaxed">
         <strong className="text-cyan-400">Cross-Project Intel Exchange: </strong>

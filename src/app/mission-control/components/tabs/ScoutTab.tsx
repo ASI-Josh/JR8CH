@@ -1,13 +1,44 @@
 'use client';
 
-import React from 'react';
-import { Badge } from '../ui';
+import React, { useState, useEffect } from 'react';
+import { Badge, Dot } from '../ui';
 import { SCOUT } from '../../lib/mission-data';
+
+const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
+const API_KEY = process.env.NEXT_PUBLIC_VIGIL_API_KEY || '';
 
 export default function ScoutTab() {
   const s = SCOUT;
+  const [isLive, setIsLive] = useState(false);
+  const [liveScoutCount, setLiveScoutCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!API_KEY) return;
+    async function fetchScout() {
+      try {
+        const res = await fetch(`${VPS_API}/api/mission/threats`, { headers: { 'x-api-key': API_KEY } });
+        if (!res.ok) throw new Error(`${res.status}`);
+        const data = await res.json();
+        if (data.threats) {
+          setIsLive(true);
+          const scoutThreats = data.threats.filter((t: any) => t.name?.toLowerCase().includes('narrative') || t.name?.toLowerCase().includes('trust') || t.status === 'ACTIVE');
+          setLiveScoutCount(scoutThreats.length);
+        }
+      } catch { /* fall back */ }
+    }
+    fetchScout();
+    const interval = setInterval(fetchScout, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 px-1">
+        <Dot color={isLive ? '#10b981' : '#f59e0b'} pulse={isLive} />
+        <span className="font-mono text-[10px] tracking-wider" style={{ color: isLive ? '#10b981' : '#f59e0b' }}>
+          {isLive ? `LIVE — VPS CONNECTED · ${liveScoutCount || 0} ACTIVE THREATS` : 'STATIC DATA — VPS UNREACHABLE'}
+        </span>
+      </div>
       <div className="bg-orange-500/[.08] border border-orange-500/25 rounded-xl p-5">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-3.5">

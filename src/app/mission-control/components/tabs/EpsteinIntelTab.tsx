@@ -1,13 +1,35 @@
 'use client';
 
-import React from 'react';
-import { Badge, Card } from '../ui';
+import React, { useState, useEffect } from 'react';
+import { Badge, Card, Dot } from '../ui';
 import { EPSTEIN_INTEL } from '../../lib/mission-data';
+
+const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
+const API_KEY = process.env.NEXT_PUBLIC_VIGIL_API_KEY || '';
 
 export default function EpsteinIntelTab() {
   const e = EPSTEIN_INTEL;
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    if (!API_KEY) return;
+    async function checkVPS() {
+      try {
+        const res = await fetch(`${VPS_API}/api/health`);
+        if (res.ok) setIsLive(true);
+      } catch { /* fall back */ }
+    }
+    checkVPS();
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2 px-1">
+        <Dot color={isLive ? '#10b981' : '#f59e0b'} pulse={isLive} />
+        <span className="font-mono text-[10px] tracking-wider" style={{ color: isLive ? '#10b981' : '#f59e0b' }}>
+          {isLive ? `LIVE — VPS CONNECTED · ${e.keyFindings.length} TIER 1 FINDINGS · ${e.osintResources.length} OSINT SOURCES` : 'STATIC DATA — VPS UNREACHABLE'}
+        </span>
+      </div>
       {/* Header */}
       <div className="text-[13px] text-slate-300 p-4 bg-yellow-500/[.08] border border-yellow-500/20 rounded-lg leading-relaxed">
         <strong className="text-yellow-500">MERIDIAN OSINT: </strong>
