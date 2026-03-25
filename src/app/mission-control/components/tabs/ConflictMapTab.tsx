@@ -38,7 +38,7 @@ interface VIGILOperation {
 
 // ===================== CONFIG =====================
 
-const GDELT_API = '/api/gdelt-proxy';
+const ACLED_API = '/api/acled-proxy';
 
 // VIGIL operation locations for map overlay
 const VIGIL_OPS: VIGILOperation[] = [
@@ -57,52 +57,61 @@ const EVENT_TYPES: Record<string, { label: string; color: string; icon: string }
   'humanitarian': { label: 'Humanitarian', color: '#06b6d4', icon: '\u{1F6D1}' },
 };
 
-// ===================== GDELT DATA FETCHING =====================
+// ===================== ACLED DATA FETCHING =====================
 
-// Parse GDELT GKG (Global Knowledge Graph) data into our event format
-function parseGDELTResponse(articles: Array<Record<string, string>>): ConflictEvent[] {
-  return articles
-    .filter((a) => a.url && a.title)
-    .map((a, i) => {
-      // Classify based on keywords in title
-      let type: ConflictEvent['type'] = 'political-crisis';
-      const titleLower = (a.title || '').toLowerCase();
-      if (/war|military|strike|bomb|attack|troops|missile|drone/.test(titleLower)) type = 'armed-conflict';
-      else if (/protest|riot|demonstrat|unrest|uprising/.test(titleLower)) type = 'civil-unrest';
-      else if (/cyber|hack|breach|ransomware|malware/.test(titleLower)) type = 'cybersecurity';
-      else if (/terror|isis|al.?qaeda|extremis/.test(titleLower)) type = 'terrorism';
-      else if (/refugee|famine|humanitarian|displaced|aid/.test(titleLower)) type = 'humanitarian';
-
-      // Estimate intensity from tone
-      const tone = parseFloat(a.tone || '0');
-      const intensity = Math.min(10, Math.max(1, Math.round(Math.abs(tone) + 3)));
-
-      return {
-        id: `gdelt-${i}-${Date.now()}`,
-        title: a.title || 'Unknown event',
-        type,
-        lat: 0, // Will be set if location data available
-        lng: 0,
-        country: a.sourcecountry || 'Unknown',
-        region: '',
-        intensity,
-        source: a.domain || 'GDELT',
-        sourceUrl: a.url || '',
-        timestamp: a.seendate || new Date().toISOString(),
-        actors: [],
-        description: a.title || '',
-      };
-    })
-    .slice(0, 50); // Cap at 50 events
+// Map ACLED event_type to our type system
+function classifyACLED(eventType: string, subEventType: string): ConflictEvent['type'] {
+  const et = (eventType || '').toLowerCase();
+  const set = (subEventType || '').toLowerCase();
+  if (et.includes('battle') || et.includes('explosion') || set.includes('armed') || set.includes('shelling')) return 'armed-conflict';
+  if (et.includes('protest') || et.includes('riot') || set.includes('mob') || set.includes('demonstrat')) return 'civil-unrest';
+  if (et.includes('violence against civilians') || set.includes('abduction') || set.includes('sexual')) return 'terrorism';
+  if (set.includes('humanitarian') || set.includes('refugee') || set.includes('displacement')) return 'humanitarian';
+  if (et.includes('strategic') || set.includes('agreement') || set.includes('headquarter')) return 'political-crisis';
+  return 'armed-conflict';
 }
 
-async function fetchGDELTEvents(query: string = 'conflict OR war OR crisis'): Promise<ConflictEvent[]> {
+function parseACLEDResponse(events: Array<Record<string, unknown>>): ConflictEvent[] {
+  return events.map((e, i) => {
+    const fatalities = (e.fatalities as number) || 0;
+    const intensity = Math.min(10, Math.max(1, fatalities >= 50 ? 10 : fatalities >= 20 ? 8 : fatalities >= 5 ? 6 : fatalities >= 1 ? 4 : 2));
+    const type = classifyACLED(e.event_type as string, e.sub_event_type as string);
+    const actors = [e.actor1 as string, e.actor2 as string].filter(Boolean);
+
+    return {
+      id: (e.id as string) || `acled-${i}`,
+      title: `${e.sub_event_type || e.event_type}: ${(e.notes as string || '').slice(0, 120)}`,
+      type,
+      lat: e.latitude as number || 0,
+      lng: e.longitude as number || 0,
+      country: (e.country as string) || 'Unknown',
+      region: (e.region as string) || '',
+      intensity,
+      source: (e.source as string) || 'ACLED',
+      sourceUrl: '',
+      timestamp: (e.event_date as string) || new Date().toISOString(),
+      actors,
+      description: `${e.event_type} — ${e.sub_event_type}${fatalities > 0 ? ` — ${fatalities} fatalities` : ''}${actors.length ? ` — Actors: ${actors.join(' vs ')}` : ''}\n${e.notes || ''}`,
+    };
+  });
+}
+
+async function fetchACLEDEvents(params: { region?: string; country?: string; days?: string }): Promise<ConflictEvent[]> {
   try {
-    const res = await fetch(`${GDELT_API}?query=${encodeURIComponent(query + ' sourcelang:english')}`);
+    const searchParams = new URLSearchParams({ limit: '100', days: params.days || '7' });
+    if (params.region) searchParams.set('region', params.region);
+    if (params.country) searchParams.set('country', params.country);
+
+    const res = await fetch(`${ACLED_API}?${searchParams}`);
     const data = await res.json();
-    return parseGDELTResponse(data.articles || []);
+
+    if (data.error) {
+      console.warn('[ATLAS] ACLED error:', data.error, data.hint || '');
+    }
+
+    return parseACLEDResponse(data.events || []);
   } catch (err) {
-    console.error('[ATLAS] GDELT fetch failed:', err);
+    console.error('[ATLAS] ACLED fetch failed:', err);
     return [];
   }
 }
@@ -583,12 +592,14 @@ export default function ConflictMapTab() {
   const [error, setError] = useState(false);
   const [lastFetch, setLastFetch] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('conflict OR war OR crisis OR military');
+  const [activeRegion, setActiveRegion] = useState('');
+  const [activeCountry, setActiveCountry] = useState('');
+  const [days, setDays] = useState('7');
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchGDELTEvents(searchQuery);
+      const data = await fetchACLEDEvents({ region: activeRegion, country: activeCountry, days });
       setEvents(data);
       setLastFetch(new Date().toISOString());
       setError(false);
@@ -597,7 +608,7 @@ export default function ConflictMapTab() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery]);
+  }, [activeRegion, activeCountry, days]);
 
   useEffect(() => {
     fetchEvents();
@@ -623,7 +634,7 @@ export default function ConflictMapTab() {
                 ATLAS
               </h2>
               <div className="text-[10px] text-slate-500">
-                Live Global Conflict Monitor — Powered by GDELT
+                Live Global Conflict Monitor — Powered by ACLED
               </div>
             </div>
           </div>
@@ -655,48 +666,55 @@ export default function ConflictMapTab() {
       {/* VIGIL Operations overlay */}
       <VIGILOverlay />
 
-      {/* Search / Filter bar */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') fetchEvents(); }}
-            placeholder="GDELT query (e.g. conflict OR cyber OR protest)"
-            className="w-full bg-[#0d1520] border border-[#2a3550] rounded-lg py-2.5 px-3.5 text-[12px] text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 transition-all"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          />
-        </div>
-        <button
-          onClick={fetchEvents}
-          disabled={loading}
-          className="px-4 rounded-lg font-mono text-[10px] font-bold tracking-wider text-white transition-all disabled:opacity-30"
-          style={{ background: 'linear-gradient(135deg, #ef4444, #f59e0b)' }}
+      {/* Filters */}
+      <div className="flex gap-2 mb-4 flex-wrap items-center">
+        <select
+          value={days}
+          onChange={(e) => setDays(e.target.value)}
+          className="bg-[#0d1520] border border-[#2a3550] rounded-lg py-2 px-3 text-[11px] text-slate-200 font-mono focus:outline-none focus:border-red-500/50"
         >
-          {loading ? 'SCANNING...' : 'SCAN'}
-        </button>
-      </div>
+          <option value="1">Last 24h</option>
+          <option value="3">Last 3 days</option>
+          <option value="7">Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30">Last 30 days</option>
+        </select>
 
-      {/* Quick region filters */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+        {/* Region presets */}
         {[
-          { label: 'Middle East', q: 'Middle East conflict OR Israel OR Iran OR Syria' },
-          { label: 'Ukraine/Russia', q: 'Ukraine OR Russia military OR Crimea' },
-          { label: 'Asia-Pacific', q: 'China OR Taiwan OR South China Sea OR North Korea' },
-          { label: 'Africa', q: 'Africa conflict OR Sudan OR Congo OR Sahel' },
-          { label: 'Cyber Ops', q: 'cyberattack OR ransomware OR APT OR state-sponsored hack' },
-          { label: 'Five Eyes', q: 'Australia OR United States OR United Kingdom intelligence' },
+          { label: 'ALL', region: '', country: '' },
+          { label: 'Middle East', region: 'Middle East', country: '' },
+          { label: 'Europe', region: 'Europe', country: '' },
+          { label: 'Africa', region: 'Africa', country: '' },
+          { label: 'Asia', region: 'Asia', country: '' },
+          { label: 'Ukraine', region: '', country: 'Ukraine' },
+          { label: 'Israel/Palestine', region: '', country: 'Israel' },
+          { label: 'Sudan', region: '', country: 'Sudan' },
+          { label: 'Myanmar', region: '', country: 'Myanmar' },
+          { label: 'Syria', region: '', country: 'Syria' },
         ].map((preset) => (
           <button
             key={preset.label}
-            onClick={() => { setSearchQuery(preset.q); }}
-            className="py-1 px-2.5 rounded text-[10px] text-slate-500 hover:text-red-400 transition-colors font-mono"
-            style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.06)' }}
+            onClick={() => { setActiveRegion(preset.region); setActiveCountry(preset.country); }}
+            className="py-1.5 px-2.5 rounded text-[10px] font-mono transition-colors"
+            style={{
+              background: (activeRegion === preset.region && activeCountry === preset.country) ? 'rgba(239,68,68,.15)' : 'rgba(255,255,255,.03)',
+              color: (activeRegion === preset.region && activeCountry === preset.country) ? '#ef4444' : '#64748b',
+              border: `1px solid ${(activeRegion === preset.region && activeCountry === preset.country) ? 'rgba(239,68,68,.3)' : 'rgba(255,255,255,.06)'}`,
+            }}
           >
             {preset.label}
           </button>
         ))}
+
+        <button
+          onClick={fetchEvents}
+          disabled={loading}
+          className="ml-auto px-4 py-1.5 rounded-lg font-mono text-[10px] font-bold tracking-wider text-white transition-all disabled:opacity-30"
+          style={{ background: 'linear-gradient(135deg, #ef4444, #f59e0b)' }}
+        >
+          {loading ? 'SCANNING...' : 'SCAN'}
+        </button>
       </div>
 
       {/* Stats bar */}
@@ -714,7 +732,7 @@ export default function ConflictMapTab() {
           <div className="flex items-center gap-2">
             <span className="font-mono text-[11px] font-bold text-slate-200 tracking-wider">CONFLICT FEED</span>
             <span className="font-mono text-[9px] text-slate-500">
-              {events.length} EVENTS {'\u2022'} LAST 24H {'\u2022'} GDELT V2
+              {events.length} EVENTS {'\u2022'} LAST {days}D {'\u2022'} ACLED
             </span>
           </div>
         </div>
@@ -747,7 +765,7 @@ export default function ConflictMapTab() {
       {/* Footer note */}
       <div className="mt-3 text-center">
         <span className="font-mono text-[9px] text-slate-600">
-          Data sourced from GDELT Project (Global Database of Events, Language, and Tone) {'\u2022'} Auto-refresh every 10 min
+          Data sourced from ACLED (Armed Conflict Location &amp; Event Data Project) {'\u2022'} Auto-refresh every 10 min
         </span>
       </div>
 
