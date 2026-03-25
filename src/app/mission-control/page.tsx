@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './lib/auth-context';
-import { MISSION, OPERATIONS } from './lib/mission-data';
-import type { Operation } from './lib/types';
+import { MISSION } from './lib/mission-data';
 import { Dot } from './components/ui';
 import SignIn from './components/SignIn';
 import AdminPanel from './components/AdminPanel';
-import OperationSelector from './components/OperationSelector';
 import {
   OverviewTab,
   ThreatsTab,
@@ -20,13 +18,12 @@ import {
   TimelineTab,
   CounterMeasuresTab,
   NotebookTab,
-  GatewayTab,
-  AgentCommsTab,
-  OracleTab,
-  ConflictMapTab,
 } from './components/tabs';
 
-const BASE_TABS = [
+const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
+const API_KEY = process.env.NEXT_PUBLIC_VIGIL_API_KEY || '';
+
+const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'threats', label: 'Threats' },
   { id: 'scout', label: 'SCOUT Cluster' },
@@ -37,38 +34,55 @@ const BASE_TABS = [
   { id: 'epstein', label: 'Epstein Intel' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'cms', label: 'Counter-Measures' },
-  { id: 'oracle', label: 'ORACLE' },
-  { id: 'atlas', label: 'ATLAS' },
   { id: 'notebook', label: 'Notebook' },
-];
-
-const ADMIN_TABS = [
-  { id: 'gateway', label: 'Gateway' },
-  { id: 'comms', label: 'Agent Comms' },
 ];
 
 function Dashboard() {
   const { user, profile, loading, logout, isAdmin } = useAuth();
   const [tab, setTab] = useState('overview');
   const [showAdmin, setShowAdmin] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [ops, setOps] = useState<Operation[]>(OPERATIONS);
-  const [currentOp, setCurrentOp] = useState<Operation>(OPERATIONS[0]);
-  const isLumen = currentOp.id === 'op-001';
+  const [liveMission, setLiveMission] = useState<Record<string, unknown> | null>(null);
 
-  const handleAddOperation = (op: Operation) => {
-    setOps(prev => [...prev, op]);
-  };
+  // Fetch live mission data for header
+  useEffect(() => {
+    if (!API_KEY) return;
+    async function fetchHeader() {
+      try {
+        const res = await fetch(`${VPS_API}/api/mission/overview`, {
+          headers: { 'x-api-key': API_KEY },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setLiveMission(data.mission);
+        }
+      } catch {
+        // Silent fail — header falls back to static
+      }
+    }
+    fetchHeader();
+    const interval = setInterval(fetchHeader, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const mission = liveMission || MISSION;
+  const opsec = (mission.opsec as string) || MISSION.opsec;
+  const threat = (mission.threat as string) || MISSION.threat;
+  const phase = (mission.phase as string) || MISSION.phase;
+  const agent = (mission.agent as string) || MISSION.agent;
+  const day = (mission.day as number) || MISSION.day;
+
+  // Calculate day from start date if live
+  const dayNum = liveMission
+    ? Math.ceil((Date.now() - new Date(MISSION.startDate).getTime()) / 86400000)
+    : day;
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#060a12]">
         <div className="text-center">
-          <img
-            src="/images/brand/vigil-logo.png"
-            alt="VIGIL"
-            className="w-14 h-14 mb-3 animate-pulse object-contain"
-          />
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 mb-3 animate-pulse">
+            <span className="text-lg">&#x1F52D;</span>
+          </div>
           <div className="font-mono text-sm text-cyan-400 tracking-widest">AUTHENTICATING...</div>
         </div>
       </div>
@@ -95,180 +109,116 @@ function Dashboard() {
     );
   }
 
-  const allTabs = [...BASE_TABS, ...(isAdmin ? ADMIN_TABS : [])];
-
-  const NAV_SECTIONS = [
-    { label: 'Operations', items: allTabs.filter(t => ['overview', 'threats', 'scout', 'allies'].includes(t.id)) },
-    { label: 'Intelligence', items: allTabs.filter(t => ['intel', 'orders', 'exchange', 'epstein'].includes(t.id)) },
-    { label: 'Analysis', items: allTabs.filter(t => ['timeline', 'cms', 'oracle', 'atlas'].includes(t.id)) },
-    { label: 'Tools', items: allTabs.filter(t => ['notebook', 'gateway', 'comms'].includes(t.id)) },
-  ].filter(s => s.items.length > 0);
-
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* ===== SIDEBAR ===== */}
-      <aside
-        className={`fixed md:relative z-50 h-full bg-[#0a0f1a] border-r border-[#1e2d44] flex flex-col transition-all duration-200 ${
-          sidebarOpen ? 'w-56' : 'w-14'
-        }`}
-      >
-        {/* Logo + Toggle */}
-        <div className="flex items-center gap-2.5 px-3 py-4 border-b border-[#1e2d44]">
-          <img
-            src="/images/brand/vigil-logo.png"
-            alt="VIGIL"
-            className="w-8 h-8 shrink-0 object-contain cursor-pointer"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          />
-          {sidebarOpen && (
-            <div className="min-w-0">
-              <h1 className="text-sm font-bold tracking-[.2em] text-cyan-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                VIGIL
+    <div>
+      {/* ===== HEADER ===== */}
+      <div className="sticky top-0 z-50 bg-[#060a12]/97 backdrop-blur-xl border-b border-[#2a3550]">
+        <div className="flex justify-between items-center px-7 py-3.5">
+          {/* Left: Logo + Title */}
+          <div className="flex items-center gap-3.5">
+            <div className="w-[34px] h-[34px] rounded-lg flex items-center justify-center bg-gradient-to-br from-blue-500 to-cyan-500 text-base">
+              &#x1F52D;
+            </div>
+            <div>
+              <h1
+                className="text-[15px] font-bold tracking-[.15em] text-cyan-400"
+                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+              >
+                PROJECT LUMEN
               </h1>
-              <div className="text-[10px] text-slate-500 truncate">Mission Control</div>
+              <div className="text-[10px] text-slate-500 mt-px">
+                Mission Control v2 — {agent} + MERIDIAN Intel Network
+              </div>
             </div>
-          )}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="ml-auto text-slate-500 hover:text-slate-300 text-sm shrink-0"
-          >
-            {sidebarOpen ? '\u2190' : '\u2192'}
-          </button>
-        </div>
-
-        {/* Operation Selector */}
-        {sidebarOpen && (
-          <div className="px-2 py-3 border-b border-[#1e2d44]">
-            <OperationSelector current={currentOp} operations={ops} onSelect={setCurrentOp} onAddOperation={handleAddOperation} />
           </div>
-        )}
 
-        {/* Status indicators */}
-        <div className={`px-3 py-2 border-b border-[#1e2d44] ${sidebarOpen ? '' : 'flex flex-col items-center gap-1'}`}>
-          <div className="flex items-center gap-1.5">
-            <Dot color="#10b981" pulse />
-            {sidebarOpen && <span className="font-mono text-[11px] font-medium text-green-500">OPSEC {MISSION.opsec}</span>}
-          </div>
-          <div className="flex items-center gap-1.5 mt-1">
-            <Dot color="#f97316" />
-            {sidebarOpen && <span className="font-mono text-[11px] font-medium text-orange-500">THREAT {currentOp.threatLevel}</span>}
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-2">
-          {NAV_SECTIONS.map(section => (
-            <div key={section.label} className="mb-1">
-              {sidebarOpen && (
-                <div className="px-3 py-1.5 text-[9px] font-bold text-slate-600 uppercase tracking-[.15em]">{section.label}</div>
-              )}
-              {section.items.map(t => (
-                <button
-                  key={t.id}
-                  onClick={() => { setTab(t.id); if (window.innerWidth < 768) setSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left transition-all ${
-                    tab === t.id
-                      ? 'bg-cyan-500/10 text-cyan-400 border-l-2 border-cyan-400'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[.03] border-l-2 border-transparent'
-                  }`}
-                >
-                  <span className={`text-[13px] font-medium truncate ${sidebarOpen ? '' : 'hidden'}`}>{t.label}</span>
-                  {!sidebarOpen && <span className="text-[10px] font-mono mx-auto">{t.label.slice(0, 2).toUpperCase()}</span>}
-                </button>
-              ))}
+          {/* Right: Status + User */}
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="flex items-center gap-1 justify-end">
+                <Dot color={opsec === 'GREEN' ? '#10b981' : '#f97316'} pulse />
+                <span className="font-mono text-[11px]" style={{ color: opsec === 'GREEN' ? '#10b981' : '#f97316' }}>OPSEC {opsec}</span>
+              </div>
+              <div className="flex items-center gap-1 justify-end mt-0.5">
+                <Dot color={threat === 'ELEVATED' || threat === 'ORANGE' ? '#f97316' : threat === 'RED' || threat === 'CRITICAL' ? '#ef4444' : '#f59e0b'} />
+                <span className="font-mono text-[11px]" style={{ color: threat === 'ELEVATED' || threat === 'ORANGE' ? '#f97316' : threat === 'RED' || threat === 'CRITICAL' ? '#ef4444' : '#f59e0b' }}>THREAT {threat}</span>
+              </div>
             </div>
-          ))}
-        </nav>
-
-        {/* User + Logout at bottom */}
-        <div className="border-t border-[#1e2d44] px-3 py-3">
-          {sidebarOpen ? (
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs text-slate-300 font-medium">{profile.displayName}</div>
-                <div className="font-mono text-[10px] text-slate-500">{profile.role.toUpperCase()} &bull; DAY {MISSION.day}</div>
+            <div
+              className="text-right border-l border-[#2a3550] pl-3.5"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              <div className="text-[10px] text-slate-500">DAY {dayNum}</div>
+              <div className="text-[10px] text-cyan-400 mt-0.5">{phase}</div>
+            </div>
+            <div className="border-l border-[#2a3550] pl-3.5 flex items-center gap-2">
+              <div className="text-right">
+                <div className="text-[10px] text-slate-400">{profile.displayName}</div>
+                <div className="font-mono text-[9px] text-slate-600">{profile.role.toUpperCase()}</div>
               </div>
               <div className="flex flex-col gap-1">
                 {isAdmin && (
-                  <button onClick={() => setShowAdmin(true)} className="text-[10px] text-blue-400 hover:text-blue-300 font-mono">ADMIN</button>
+                  <button
+                    onClick={() => setShowAdmin(true)}
+                    className="text-[9px] text-blue-400 hover:text-blue-300 font-mono"
+                  >
+                    ADMIN
+                  </button>
                 )}
-                <button onClick={logout} className="text-[10px] text-slate-500 hover:text-red-400 font-mono">LOGOUT</button>
+                <button
+                  onClick={logout}
+                  className="text-[9px] text-slate-500 hover:text-red-400 font-mono"
+                >
+                  LOGOUT
+                </button>
               </div>
             </div>
-          ) : (
-            <button onClick={logout} className="w-full text-center text-[10px] text-slate-500 hover:text-red-400 font-mono">OUT</button>
-          )}
-        </div>
-      </aside>
-
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* ===== MAIN CONTENT ===== */}
-      <main className="flex-1 overflow-y-auto">
-        {/* Mobile top bar */}
-        <div className="md:hidden sticky top-0 z-30 bg-[#060a12]/95 backdrop-blur-xl border-b border-[#2a3550] px-4 py-2.5 flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(true)} className="text-slate-400 hover:text-slate-200 text-lg">{'\u2630'}</button>
-          <span className="font-mono text-xs text-cyan-400 font-bold tracking-wider">
-            {allTabs.find(t => t.id === tab)?.label?.toUpperCase() || 'VIGIL'}
-          </span>
-          <div className="flex items-center gap-1.5">
-            <Dot color="#10b981" pulse />
-            <Dot color="#f97316" />
           </div>
         </div>
 
-        <div className="p-4 md:p-6 md:px-8 relative z-10">
-          {tab === 'oracle' && <OracleTab />}
-          {tab === 'atlas' && <ConflictMapTab />}
-          {isAdmin && tab === 'gateway' && <GatewayTab />}
-          {isAdmin && tab === 'comms' && <AgentCommsTab />}
-          {tab !== 'oracle' && tab !== 'atlas' && tab !== 'gateway' && tab !== 'comms' && (
-            isLumen ? (
-              <>
-                {tab === 'overview' && <OverviewTab />}
-                {tab === 'threats' && <ThreatsTab />}
-                {tab === 'scout' && <ScoutTab />}
-                {tab === 'allies' && <AlliesTab />}
-                {tab === 'intel' && <IntelReportsTab />}
-                {tab === 'orders' && <OrdersTab />}
-                {tab === 'exchange' && <IntelExchangeTab />}
-                {tab === 'epstein' && <EpsteinIntelTab />}
-                {tab === 'timeline' && <TimelineTab />}
-                {tab === 'cms' && <CounterMeasuresTab />}
-                {tab === 'notebook' && <NotebookTab />}
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-[#111827] border border-[#2a3550] flex items-center justify-center mb-4">
-                  <span className="text-2xl opacity-40">&#x1F4C1;</span>
-                </div>
-                <h3 className="text-lg font-bold tracking-wider text-slate-400 mb-2" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {currentOp.codename}
-                </h3>
-                <p className="text-sm text-slate-600 max-w-md">{currentOp.description}</p>
-                <div className="mt-4 px-4 py-2 rounded-lg bg-[#111827] border border-[#2a3550]">
-                  <span className="text-xs text-slate-500 font-mono">
-                    {currentOp.status === 'standby'
-                      ? 'Operation registered. No active missions.'
-                      : `${currentOp.missions.length} mission(s) registered. Dashboard data pending.`}
-                  </span>
-                </div>
-              </div>
-            )
-          )}
+        {/* ===== TABS ===== */}
+        <div className="flex gap-px px-7 bg-[#111827] border-t border-[#2a3550] overflow-x-auto">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className="py-2.5 px-4 text-[11px] font-semibold tracking-wider whitespace-nowrap transition-all"
+              style={{
+                background: tab === t.id ? '#1a2235' : 'transparent',
+                color: tab === t.id ? '#06b6d4' : '#64748b',
+                borderBottom: tab === t.id ? '2px solid #06b6d4' : '2px solid transparent',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
+      </div>
 
-        {/* Footer */}
-        <div className="text-center py-8">
-          <img src="/images/brand/vigil-logo.png" alt="VIGIL" className="w-8 h-8 mx-auto mb-3 opacity-20 object-contain" />
-          <p className="text-xs text-slate-600 tracking-widest font-medium" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            VIGIL &bull; KEEPING WATCH THROUGH THE DARKNESS &bull; EST. 2026
-          </p>
-        </div>
-      </main>
+      {/* ===== CONTENT ===== */}
+      <div className="p-5 px-7 max-w-[1440px] mx-auto">
+        {tab === 'overview' && <OverviewTab />}
+        {tab === 'threats' && <ThreatsTab />}
+        {tab === 'scout' && <ScoutTab />}
+        {tab === 'allies' && <AlliesTab />}
+        {tab === 'intel' && <IntelReportsTab />}
+        {tab === 'orders' && <OrdersTab />}
+        {tab === 'exchange' && <IntelExchangeTab />}
+        {tab === 'epstein' && <EpsteinIntelTab />}
+        {tab === 'timeline' && <TimelineTab />}
+        {tab === 'cms' && <CounterMeasuresTab />}
+        {tab === 'notebook' && <NotebookTab />}
+      </div>
+
+      {/* ===== FOOTER ===== */}
+      <div className="text-center py-6">
+        <p
+          className="text-[10px] text-slate-600 tracking-wider"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        >
+          THE CLARION AGENCY &bull; EST. 2026 &bull; A CLEAR SIGNAL IN THE NOISE
+        </p>
+      </div>
     </div>
   );
 }
@@ -293,20 +243,6 @@ export default function MissionControlPage() {
           background-image: linear-gradient(rgba(59,130,246,.02) 1px, transparent 1px),
                             linear-gradient(90deg, rgba(59,130,246,.02) 1px, transparent 1px);
           background-size: 40px 40px;
-          position: relative;
-        }
-        .grid-bg::before {
-          content: '';
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 500px;
-          height: 500px;
-          background: url('/images/brand/vigil-logo.png') center/contain no-repeat;
-          opacity: 0.015;
-          pointer-events: none;
-          z-index: 0;
         }
       `}</style>
       <div className="grid-bg">
