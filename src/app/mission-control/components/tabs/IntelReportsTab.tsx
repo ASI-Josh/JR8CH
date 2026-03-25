@@ -35,8 +35,9 @@ export default function IntelReportsTab() {
         });
         if (!res.ok) throw new Error(`${res.status}`);
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setLiveReports(data);
+        const reports = Array.isArray(data) ? data : data.reports || data.data || [];
+        if (reports.length > 0) {
+          setLiveReports(reports);
           setIsLive(true);
         }
       } catch {

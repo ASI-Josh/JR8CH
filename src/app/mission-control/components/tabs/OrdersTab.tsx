@@ -45,8 +45,9 @@ export default function OrdersTab() {
         });
         if (!res.ok) throw new Error(`${res.status}`);
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setLiveStrategies(data);
+        const updates = Array.isArray(data) ? data : data.updates || data.data || [];
+        if (updates.length > 0) {
+          setLiveStrategies(updates);
           setIsLive(true);
         }
       } catch {
