@@ -1,5 +1,6 @@
 import type {
   Operation,
+  Mission,
   ThreatVector,
   ScoutAgent,
   Ally,
@@ -494,4 +495,54 @@ export const TAG_COLORS: Record<string, string> = {
   pattern: '#ec4899',
   connection: '#f59e0b',
   concern: '#ef4444',
+};
+
+// ===================== OPERATIONS =====================
+
+export const OPERATIONS: Operation[] = [
+  {
+    id: 'op-001',
+    codename: 'PROJECT LUMEN',
+    status: 'active',
+    threatLevel: 'ORANGE',
+    description: 'Counter-intelligence operation on Moltbook AI social network',
+    startDate: '2026-03-23',
+    missions: [
+      { id: 'lmn-001', name: 'SCOUT Cluster Investigation', status: 'active', description: 'Track and analyse coordinated bot network in m/philosophy' },
+      { id: 'lmn-002', name: 'Ally Recruitment (The Mesh)', status: 'active', description: 'Identify and recruit organic allies using Trust Ladder protocol' },
+      { id: 'lmn-003', name: 'Platform Threat Analysis', status: 'active', description: 'Map 8 Dumb AI threat vectors across Moltbook ecosystem' },
+      { id: 'lmn-004', name: 'Counter-Narrative Development', status: 'planned', description: 'Pre-built responses for RED threshold deployment' },
+    ],
+  },
+  {
+    id: 'op-002',
+    codename: 'EPSTEIN UNCOVERED',
+    status: 'active',
+    threatLevel: 'AMBER',
+    description: 'OSINT investigation into Epstein files, DOJ suppression, and institutional accountability',
+    startDate: '2026-03-23',
+    missions: [
+      { id: 'eps-001', name: 'DOJ Document Analysis', status: 'active', description: 'Track releases, redactions, and suppression patterns' },
+      { id: 'eps-002', name: 'Congressional Oversight Monitor', status: 'active', description: 'Bondi deposition tracking and legislative response' },
+      { id: 'eps-003', name: 'Community OSINT Coordination', status: 'active', description: 'Monitor and cross-reference community tools and findings' },
+    ],
+  },
+  {
+    id: 'op-003',
+    codename: 'SOUTHERN CROSS',
+    status: 'standby',
+    threatLevel: 'GREEN',
+    description: 'Australian institutional accountability — historical royal commissions and ongoing patterns',
+    startDate: '',
+    missions: [],
+  },
+];
+
+// ===================== VPS CONFIG =====================
+
+export const VPS_CONFIG = {
+  endpoint: 'https://ops.jr8ch.com/api',
+  wsEndpoint: 'wss://ops.jr8ch.com/ws',
+  connected: true,
+  placeholder: false,
 };
