@@ -8,6 +8,114 @@ import { MISSION, STATS, ALLIES, SCOUT, PATTERN_MATCHES, SHARED_ENTITIES, EPSTEI
 const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
 const API_KEY = process.env.NEXT_PUBLIC_VIGIL_API_KEY || '';
 
+// Simple markdown to JSX renderer for MC Analysis
+function renderMarkdown(raw: string) {
+  const lines = raw.split('\n');
+  const elements: React.ReactNode[] = [];
+
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      elements.push(<div key={i} className="h-2" />);
+    } else if (trimmed.startsWith('# ')) {
+      elements.push(<h2 key={i} className="text-lg font-bold text-cyan-400 mt-4 mb-2 tracking-wider" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{trimmed.slice(2)}</h2>);
+    } else if (trimmed.startsWith('## ')) {
+      elements.push(<h3 key={i} className="text-sm font-bold text-slate-200 mt-3 mb-1.5 border-b border-[#2a3550] pb-1">{trimmed.slice(3)}</h3>);
+    } else if (trimmed.startsWith('### ')) {
+      elements.push(<h4 key={i} className="text-[13px] font-semibold text-purple-400 mt-2 mb-1">{trimmed.slice(4)}</h4>);
+    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const content = trimmed.slice(2);
+      const isImportant = /CRITICAL|RED FLAG|ELEVATED|URGENT|WARNING/i.test(content);
+      elements.push(
+        <div key={i} className={`flex items-start gap-2 text-[12px] leading-relaxed pl-2 py-0.5 ${isImportant ? 'text-orange-400 font-medium' : 'text-slate-400'}`}>
+          <span className="text-slate-600 mt-0.5">{'\u25B8'}</span>
+          <span>{content}</span>
+        </div>
+      );
+    } else if (/^\d+\./.test(trimmed)) {
+      const content = trimmed.replace(/^\d+\.\s*/, '');
+      const num = trimmed.match(/^(\d+)/)?.[1];
+      elements.push(
+        <div key={i} className="flex items-start gap-2 text-[12px] leading-relaxed pl-2 py-0.5 text-slate-300">
+          <span className="font-mono text-cyan-500 font-bold min-w-[20px]">#{num}</span>
+          <span>{content}</span>
+        </div>
+      );
+    } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+      elements.push(<div key={i} className="text-[12px] font-semibold text-slate-200 mt-1">{trimmed.replace(/\*\*/g, '')}</div>);
+    } else if (trimmed.startsWith('>')) {
+      elements.push(
+        <div key={i} className="text-[11px] text-amber-400/80 italic pl-3 border-l-2 border-amber-500/30 my-1 py-1">
+          {trimmed.slice(1).trim()}
+        </div>
+      );
+    } else if (trimmed.startsWith('---')) {
+      elements.push(<hr key={i} className="border-[#2a3550] my-3" />);
+    } else {
+      // Bold inline
+      const rendered = trimmed.replace(/\*\*([^*]+)\*\*/g, '<b class="text-slate-200 font-semibold">$1</b>');
+      elements.push(
+        <div key={i} className="text-[12px] text-slate-400 leading-relaxed py-0.5" dangerouslySetInnerHTML={{ __html: rendered }} />
+      );
+    }
+  });
+
+  return elements;
+}
+
+function MCAnalysis({ raw, filename, mcStatus }: { raw: string; filename: string; mcStatus: Record<string, unknown> | null }) {
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <div className="bg-[#0d1520] border border-[#1e2d44] rounded-xl overflow-hidden" style={{ borderTop: '2px solid #8b5cf6' }}>
+      {/* Header */}
+      <div
+        className="flex items-center justify-between px-4 py-3 bg-[#111d2e] border-b border-[#1e2d44] cursor-pointer hover:bg-[#131f32] transition-colors"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-lg">{'\u{1F9E0}'}</span>
+          <div>
+            <span className="font-mono text-[13px] font-bold text-purple-400 tracking-wider">MC ANALYSIS — LATEST</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              {mcStatus?.last_analysis && (
+                <span className="font-mono text-[10px] text-slate-500">
+                  {new Date(mcStatus.last_analysis as string).toLocaleString()}
+                </span>
+              )}
+              {mcStatus?.model_used && (
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{
+                  background: (mcStatus.model_used as string).includes('opus') ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)',
+                  color: (mcStatus.model_used as string).includes('opus') ? '#ef4444' : '#8b5cf6',
+                }}>
+                  {(mcStatus.model_used as string).includes('opus') ? 'OPUS' : 'SONNET'}
+                </span>
+              )}
+              {mcStatus?.priority && (
+                <span className="font-mono text-[9px] px-1.5 py-0.5 rounded" style={{
+                  background: (mcStatus.priority as string) === 'critical' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)',
+                  color: (mcStatus.priority as string) === 'critical' ? '#ef4444' : '#f59e0b',
+                }}>
+                  {(mcStatus.priority as string).toUpperCase()}
+                </span>
+              )}
+              <span className="font-mono text-[9px] text-slate-600">{filename}</span>
+            </div>
+          </div>
+        </div>
+        <span className="text-slate-500 text-sm">{expanded ? '\u25BE' : '\u25B8'}</span>
+      </div>
+
+      {/* Content */}
+      {expanded && (
+        <div className="px-5 py-4 max-h-[600px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+          {renderMarkdown(raw)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface LiveData {
   mission: typeof MISSION & Record<string, unknown>;
   stats: typeof STATS & Record<string, unknown>;
@@ -193,6 +301,15 @@ export default function OverviewTab() {
             <div className="text-[11px] text-slate-300 font-mono">{(mcStatus.input_tokens as number || 0).toLocaleString()} in / {(mcStatus.output_tokens as number || 0).toLocaleString()} out</div>
           </div>
         </Card>
+      )}
+
+      {/* MC Analysis — Full Intelligence Product */}
+      {live?.latestStrategy && (live.latestStrategy as Record<string, unknown>).raw && (
+        <MCAnalysis
+          raw={(live.latestStrategy as Record<string, unknown>).raw as string}
+          filename={(live.latestStrategy as Record<string, unknown>).filename as string}
+          mcStatus={mcStatus}
+        />
       )}
 
       {/* Two-column row */}
