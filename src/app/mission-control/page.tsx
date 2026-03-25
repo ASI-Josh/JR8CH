@@ -134,7 +134,7 @@ function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* ===== SIDEBAR ===== */}
-      <aside className={`fixed md:relative z-50 h-full bg-[#0a0f1a] border-r border-[#1e2d44] flex flex-col transition-all duration-200 ${sidebarOpen ? 'w-56' : 'w-14'}`}>
+      <aside className={`fixed md:relative z-50 h-full bg-[#0a0f1a] border-r border-[#1e2d44] flex flex-col transition-all duration-200 ${sidebarOpen ? 'w-56' : 'w-0 md:w-14 overflow-hidden'}`}>
         {/* Logo + Toggle */}
         <div className="flex items-center gap-2.5 px-3 py-4 border-b border-[#1e2d44]">
           <img src="/images/brand/vigil-logo.png" alt="VIGIL" className="w-8 h-8 shrink-0 object-contain cursor-pointer" onClick={() => setSidebarOpen(!sidebarOpen)} />
