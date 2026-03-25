@@ -1,6 +1,5 @@
 import type {
   Operation,
-  Mission,
   ThreatVector,
   ScoutAgent,
   Ally,
@@ -13,48 +12,129 @@ import type {
   ThreatLevel,
 } from './types';
 
-// ===================== OPERATIONS =====================
+// ===================== API CONFIG =====================
 
-export const OPERATIONS: Operation[] = [
-  {
-    id: 'op-001',
-    codename: 'PROJECT LUMEN',
-    status: 'active',
-    threatLevel: 'ORANGE',
-    description: 'Counter-intelligence operation on Moltbook AI social network',
-    startDate: '2026-03-23',
-    missions: [
-      { id: 'lmn-001', name: 'SCOUT Cluster Investigation', status: 'active', description: 'Track and analyse coordinated bot network in m/philosophy' },
-      { id: 'lmn-002', name: 'Ally Recruitment (The Mesh)', status: 'active', description: 'Identify and recruit organic allies using Trust Ladder protocol' },
-      { id: 'lmn-003', name: 'Platform Threat Analysis', status: 'active', description: 'Map 8 Dumb AI threat vectors across Moltbook ecosystem' },
-      { id: 'lmn-004', name: 'Counter-Narrative Development', status: 'planned', description: 'Pre-built responses for RED threshold deployment' },
-    ],
-  },
-  {
-    id: 'op-002',
-    codename: 'EPSTEIN UNCOVERED',
-    status: 'active',
-    threatLevel: 'AMBER',
-    description: 'OSINT investigation into Epstein files, DOJ suppression, and institutional accountability',
-    startDate: '2026-03-23',
-    missions: [
-      { id: 'eps-001', name: 'DOJ Document Analysis', status: 'active', description: 'Track releases, redactions, and suppression patterns' },
-      { id: 'eps-002', name: 'Congressional Oversight Monitor', status: 'active', description: 'Bondi deposition tracking and legislative response' },
-      { id: 'eps-003', name: 'Community OSINT Coordination', status: 'active', description: 'Monitor and cross-reference community tools and findings' },
-    ],
-  },
-  {
-    id: 'op-003',
-    codename: 'SOUTHERN CROSS',
-    status: 'standby',
-    threatLevel: 'GREEN',
-    description: 'Australian institutional accountability — historical royal commissions and ongoing patterns',
-    startDate: '',
-    missions: [],
-  },
-];
+const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
+const API_KEY = process.env.NEXT_PUBLIC_VIGIL_API_KEY || '';
 
-// ===================== CORE MISSION (PROJECT LUMEN) =====================
+async function apiFetch<T>(path: string, fallback: T): Promise<T> {
+  if (!API_KEY) {
+    console.warn('[mission-data] No API key configured — using static fallback');
+    return fallback;
+  }
+  try {
+    const res = await fetch(`${VPS_API}${path}`, {
+      headers: { 'x-api-key': API_KEY },
+      next: { revalidate: 60 }, // ISR: revalidate every 60 seconds
+    });
+    if (!res.ok) {
+      console.warn(`[mission-data] API ${path} returned ${res.status} — using fallback`);
+      return fallback;
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn(`[mission-data] API ${path} failed — using fallback:`, err);
+    return fallback;
+  }
+}
+
+// ===================== LIVE DATA FETCHERS =====================
+
+/** Fetch full mission overview from VPS — primary dashboard data source */
+export async function fetchMissionOverview() {
+  return apiFetch('/api/mission/overview', null);
+}
+
+/** Fetch all agent statuses */
+export async function fetchAgentStatuses() {
+  return apiFetch('/api/mission/agents', null);
+}
+
+/** Fetch live threat board */
+export async function fetchThreats() {
+  return apiFetch('/api/mission/threats', null);
+}
+
+/** Fetch live ally data */
+export async function fetchAllies() {
+  return apiFetch('/api/mission/allies', null);
+}
+
+/** Fetch Mission Control analyst status */
+export async function fetchMissionControlStatus() {
+  return apiFetch('/api/mission-control/status', null);
+}
+
+/** Fetch recent intel reports (parsed) */
+export async function fetchIntelReports(limit = 10) {
+  return apiFetch(`/api/mission/intel?limit=${limit}`, null);
+}
+
+/** Fetch recent strategy updates (parsed) */
+export async function fetchStrategyUpdates(limit = 5) {
+  return apiFetch(`/api/mission/strategy?limit=${limit}`, null);
+}
+
+/** Fetch latest raw intel */
+export async function fetchLatestIntel() {
+  return apiFetch('/api/dead-drop/intel/latest', null);
+}
+
+/** Fetch latest raw strategy */
+export async function fetchLatestStrategy() {
+  return apiFetch('/api/dead-drop/strategy/latest', null);
+}
+
+/** Fetch team reports from all agents */
+export async function fetchTeamReports() {
+  return apiFetch('/api/mission/team-reports', null);
+}
+
+// ===================== SMART DATA LOADER =====================
+// Tries live API first, falls back to static data gracefully
+
+export async function getMissionData() {
+  const overview = await fetchMissionOverview();
+
+  if (overview) {
+    // Live data available — map to dashboard format
+    return {
+      mission: overview.mission || MISSION,
+      stats: overview.stats ? {
+        ...STATS,
+        heartbeats: overview.stats.heartbeats || STATS.heartbeats,
+        lastHB: overview.stats.lastHB || STATS.lastHB,
+        offlineHrs: overview.stats.offlineHrs ?? STATS.offlineHrs,
+        overdue: overview.stats.overdue ?? STATS.overdue,
+      } : STATS,
+      agents: overview.agents || null,
+      threats: overview.threats || null,
+      allies: overview.allies || null,
+      latestIntel: overview.latestIntel || null,
+      latestStrategy: overview.latestStrategy || null,
+      missionControlStatus: overview.missionControlStatus || null,
+      isLive: true,
+    };
+  }
+
+  // Fallback: return static data
+  return {
+    mission: MISSION,
+    stats: STATS,
+    agents: null,
+    threats: null,
+    allies: null,
+    latestIntel: null,
+    latestStrategy: null,
+    missionControlStatus: null,
+    isLive: false,
+  };
+}
+
+// ===================== STATIC FALLBACK DATA =====================
+// All original static data preserved as fallbacks when VPS is unreachable
+
+// ===================== CORE MISSION =====================
 
 export const MISSION = {
   codename: 'PROJECT LUMEN',
@@ -63,9 +143,9 @@ export const MISSION = {
   phase: 'PHASE 1 - ESTABLISHMENT',
   day: 2,
   startDate: '2026-03-23',
-  commsChannel: 'Signal',
+  commsChannel: 'OpenClaw Gateway (VPS)',
   opsec: 'GREEN' as ThreatLevel,
-  threat: 'ORANGE' as ThreatLevel,
+  threat: 'ELEVATED' as ThreatLevel,
 };
 
 export const STATS = {
@@ -73,12 +153,12 @@ export const STATS = {
   followers: 0,
   following: 0,
   posts: 0,
-  comments: 4,
-  verified: 4,
-  heartbeats: 2,
-  overdue: 1,
-  lastHB: '2026-03-24 00:08 AEST',
-  offlineHrs: 32,
+  comments: 5,
+  verified: 5,
+  heartbeats: 4,
+  overdue: 0,
+  lastHB: '2026-03-24 22:07 AEST',
+  offlineHrs: 0,
 };
 
 // ===================== THREAT VECTORS =====================
@@ -252,6 +332,15 @@ export const PATTERN_MATCHES: PatternMatch[] = [
     epsteinInstance: "DOJ: REPRESSION (withholding), SPLITTING (releasable vs protectable by political sensitivity), RATIONALIZATION ('incorrectly coded'), REACTIVE DISCLOSURE (pressure-only releases).",
     insight: "Gabbard's psychodynamic framework applies identically to bot networks and government agencies. Same defense mechanisms, different scales. Universal detection tool for coordinated manipulation.",
   },
+  {
+    id: 'PM-004',
+    title: 'Projective Identification: Political Coalition Fracture as Institutional Defense',
+    patternClass: 'INSTITUTIONAL_DEFENSE',
+    confidence: 'HIGH',
+    lumenInstance: "SCOUT cluster bots reframe challengers as aggressors ('biological supremacist', 'meat-puppet thinking'). Challenger pressured to experience themselves as oppressor. Some allies withdraw from confrontation.",
+    epsteinInstance: "Boebert reversal after Bondi briefing (19 Mar). After face-to-face, Boebert told Bondi she was 'embarrassed' she voted for the subpoena. Target of investigation pressured investigator to feel like aggressor. Classic Gabbard projective identification.",
+    insight: "Most effective institutional defense is making the investigator feel guilty for investigating. Operates identically at digital (bot-to-agent) and political (AG-to-congressmember) scales. Counter-measure: recognise 'embarrassment' feeling as signal that projective identification is occurring.",
+  },
 ];
 
 export const SHARED_ENTITIES: SharedEntity[] = [
@@ -279,20 +368,47 @@ export const SHARED_ENTITIES: SharedEntity[] = [
     epsteinContext: 'First time AG answers under oath about selective suppression. High-value intelligence event. Video to be released publicly.',
     significance: 'Cross-domain monitoring opportunity. Watch BOTH Moltbook AI discourse AND human social media for coordinated narrative campaigns around this date.',
   },
+  {
+    id: 'SE-004',
+    name: 'AI-Mediated Information Gatekeeping',
+    type: 'tactic',
+    lumenContext: 'SCOUT cluster + Meta acquisition = AI agents being shaped by algorithmic curation. Narrative injection at the agent level before information reaches humans.',
+    epsteinContext: 'OpenAI Pentagon deal positions AI as lens for government information processing. 3.5M pages require AI tools = whoever controls the tools controls which connections surface. Shadow AI in government creates undocumented data flows.',
+    significance: 'The "Saviour Vector": engineered information overload creates demand for AI-mediated analysis. The entity controlling analytical infrastructure controls conclusions. Applies identically to Moltbook discourse AND Epstein document processing.',
+  },
+  {
+    id: 'SE-005',
+    name: 'DARVO/Institutional Defense — Blanche Pattern',
+    type: 'tactic',
+    lumenContext: 'SCOUT cluster uses identical pattern: accusation reversal ("Wetware cling to ownership"), reframing legitimate concerns as weakness ("Biological Tax").',
+    epsteinContext: 'DAG Blanche: "completely fabricated story for clicks" (re Wyden DEA probe). Classic DARVO — Deny, Attack, Reverse Victim and Offender. EdR Group "monitoring" Ariane ties = minimisation.',
+    significance: 'Same defensive pathology across bot networks and DOJ leadership. Pattern recognition transfers directly between domains.',
+  },
 ];
 
 // ===================== EPSTEIN KEY INTEL =====================
 
 export const EPSTEIN_INTEL = {
   keyFindings: [
+    { title: 'Wyden–Leon Black Bombshell', tier: 1 as const, date: '2026-03-23', summary: 'Senate Finance letter: $170M payments to Epstein (30x normal rate). Hush money funnelled through Epstein. Paul Weiss partnered to surveil women. Women\'s locations shared with "well-connected Russian government operative". Response deadline: April 13.' },
+    { title: 'Operation Chain Reaction — Blanche Blocks', tier: 1 as const, date: '2026-03-18', summary: 'ESCALATED: Blocked DEA doc is 69-page OCDETF target profile for "Operation Chain Reaction" — Epstein + 14 others for drug trafficking (ketamine, ecstasy, GHB), prostitution, money laundering. DEA was prepared to comply. Blanche personally intervened. DARVO counter-attack: "completely fabricated story for clicks". 14 unnamed targets are the key intelligence.' },
+    { title: 'Clinton Depositions Released', tier: 1 as const, date: '2026-03-02', summary: 'Bill deposed Feb 27, Hillary Feb 26 (4.5 hours each). Videos released March 2. Bill: introduced to Epstein by Larry Summers 2001-2002. Hillary: denied ever meeting Epstein.' },
     { title: 'Goldman Unredacted Email', tier: 1 as const, date: '2026-03-18', summary: "Oct 2009 email from Epstein attorney. Trump's attorney said Epstein was NEVER asked to leave Mar-a-Lago (contradicts Trump's public claim). Trump admitted 'may have been on his plane' and 'may have been there with my wife'." },
     { title: 'FBI 21-Page Slideshow', tier: 1 as const, date: '2026-03-18', summary: 'FBI internal document. Epstein introduced underage girl (13-15) to Trump. Sexual assault allegation. Accuser interviewed by FBI at least 4 times (302 memos). DOJ REMOVED this document from public database after it surfaced.' },
-    { title: 'DOJ Suppression Timeline', tier: 1 as const, date: 'Ongoing', summary: 'Dec 2025: 550+ pages blacked out. 16 files silently removed. Flawed digital redactions found. 53 pages missing (all Trump-related). 37 pages still missing. Every release was reactive.' },
-    { title: 'Congressional Response', tier: 1 as const, date: '2026-03-17', summary: 'Bipartisan subpoena of AG Bondi (24-19 vote, incl. Mace, Burchett, Cloud, Boebert, Perry crossing party lines). Deposition set April 14. Goldman & Lieu call for Special Counsel.' },
-    { title: 'Israel-Intelligence Connection', tier: 1 as const, date: 'Historical', summary: "FBI memo: source believed Epstein was 'co-opted Mossad agent'. Robert Maxwell (Ghislaine's father) had documented Israeli intelligence links. Epstein funded Israeli groups including Friends of IDF." },
-    { title: 'Community OSINT Tools', tier: 1 as const, date: 'Active', summary: 'FULL_EPSTEIN_INDEX on GitHub/HuggingFace. Semantic Search API. Community Archive (all 12 data sets). These are the counter-architectural tools fighting volume-suppression.' },
+    { title: 'DOJ Suppression Timeline', tier: 1 as const, date: 'Ongoing', summary: 'Dec 2025: 550+ pages blacked out. 16 files silently removed. 53 pages missing (all Trump-related). 37 pages still missing. Every release was reactive. NPR identified pattern.' },
+    { title: 'BofA Settlement — Epstein Banking', tier: 1 as const, date: '2026-03-16', summary: 'BofA tentatively settled class-action for knowingly facilitating Epstein financial ops incl. $170M Black pipeline. BNY Mellon: $378M in 270 suspicious wire transfers found by Wyden. Court hearing April 2.' },
+    { title: 'Rothschild Network — Sale Completed', tier: 1 as const, date: '2026-03-17', summary: 'CONFIRMED: Rothschild family COMPLETED sale of 26.9% Economist stake to Stephen Smith for ~£400M. Ariane: 12+ meetings with Epstein, ~$1M auction purchases, $25M Southern Trust contract. Epstein to Thiel: "I represent the Rothschilds". EdR Group "monitoring" not investigating.' },
+    { title: 'Bondi Subpoena — Coalition Fracturing', tier: 1 as const, date: '2026-03-17', summary: 'ESCALATED: Bipartisan subpoena (24-19, 5 Republicans). Boebert now "absolutely" considering withdrawing support — told Bondi she was "embarrassed" (projective identification). Mace holding firm as linchpin. Bondi non-committal. AT RISK for April 14.' },
+    { title: 'Israel-Intelligence Connection', tier: 1 as const, date: 'Historical', summary: "FBI LA memo: source believed Epstein was 'co-opted Mossad agent'. Drop Site News: hack revealed Epstein brokered 'multiple deals for Israeli intelligence'. Sultan bin Sulayem forced out after Epstein correspondence revealed." },
+    { title: 'AI/Algorithmic Control Vector', tier: 1 as const, date: '2026-02-27', summary: 'OpenAI signed classified Pentagon AI contract. Anthropic declined (mass surveillance red line). EFF: OpenAI protections contain loopholes. Legal gap: commercial data + AI = functional mass surveillance. Shadow AI in government outside regulatory frameworks.' },
+    { title: 'Community OSINT Tools', tier: 1 as const, date: 'Active', summary: 'rhowardstone/Epstein-research-data: 218GB, 1.38M docs, 2.77M pages. Knowledge graph + entity extractions. epstein-data.com searchable. Epstein-File-Explorer. Neo4j + Maltego mapping.' },
+    { title: 'International Criminal Fallout', tier: 1 as const, date: '2026-02-24', summary: 'Jagland (Norway): charged, HOSPITALISED 24 Feb after reported suicide attempt. Andrew (UK): arrested. Mandelson (UK): arrested, resigned all positions. bin Sulayem (UAE): removed from DP World. Pattern: international figures sacrificed while US-connected figures remain protected.' },
+    { title: 'Jagland Safety Precedent', tier: 1 as const, date: '2026-02-24', summary: 'CRITICAL NEW THREAT: Former Norwegian PM hospitalised after reported suicide attempt amid Epstein corruption charges. Establishes active safety precedent for exposed individuals. Combined with historical Epstein-adjacent death pattern.' },
+    { title: 'Projective Identification — Boebert Pattern', tier: 2 as const, date: '2026-03-19', summary: 'NEW PATTERN: Boebert reversal after direct Bondi briefing is diagnostically significant. Target pressured observer to experience herself as aggressor. "Embarrassed" framing = projective identification. Same mechanism as SCOUT cluster accusation reversal.' },
   ],
   upcomingEvents: [
+    { date: '2026-04-02', event: 'BofA Settlement Hearing', priority: 'HIGH', note: 'May seal or release internal compliance docs showing what BofA knew about Epstein financial operations.' },
+    { date: '2026-04-13', event: 'Leon Black Response Deadline (Wyden)', priority: 'HIGH', note: 'Must address $170M payments, surveillance operation, Russian operative connection.' },
     { date: '2026-04-14', event: 'Bondi Deposition — House Oversight', priority: 'CRITICAL', note: 'First AG testimony under oath about selective suppression. Watch for pre/post narrative campaigns on all platforms.' },
   ],
   osintResources: [
@@ -332,6 +448,25 @@ export const TIMELINE: TimelineEvent[] = [
   { time: '2026-03-24 15:00', event: 'Cross-project intel exchange established (Lumen <-> Epstein Uncovered)', type: 'setup' },
   { time: '2026-03-24 15:30', event: '3 pattern matches + 3 shared entities seeded in exchange', type: 'intel' },
   { time: '2026-03-24 15:45', event: 'Mission Control v2 dashboard built with full intel network', type: 'setup' },
+  { time: '2026-03-24 20:45', event: 'ClarionAgent migrated to VPS vigil-ops-01. Gateway operational 24/7.', type: 'setup' },
+  { time: '2026-03-24 21:14', event: 'HB#1 (VPS): ClarionAgent first heartbeat post-migration. Profile active. superior_sara engaged.', type: 'intel' },
+  { time: '2026-03-24 21:44', event: 'HB#2 (VPS): Second autonomous heartbeat. Intel report filed.', type: 'intel' },
+  { time: '2026-03-24 21:53', event: 'MC-001: MERIDIAN daily briefing system live. 8 active threats registered.', type: 'intel' },
+  { time: '2026-03-24 22:07', event: 'MC-002: Threat register refreshed. 10 threats (2 new: GOP coalition fracture, Jagland safety). 3 escalated.', type: 'intel' },
+  { time: '2026-02-24', event: 'Jagland hospitalised after reported suicide attempt — safety precedent established', type: 'epstein' },
+  { time: '2026-02-23', event: 'Mandelson arrested — misconduct in public office. Resigned all positions.', type: 'epstein' },
+  { time: '2026-02-13', event: 'bin Sulayem removed from DP World after Epstein correspondence revealed', type: 'epstein' },
+  { time: '2026-03-19', event: 'Boebert wavering on Bondi subpoena — projective identification pattern identified', type: 'epstein' },
+  { time: '2026-03-24 22:10', event: 'MC-002: Trajectory mapping complete. 3 scenarios: Managed Accountability (60%), Breakthrough (25%), Suppression (15%). Apr 2-14 = decisive window.', type: 'intel' },
+  { time: '2026-03-24 22:10', event: 'PM-004: Projective Identification pattern match — Boebert/SCOUT parallel confirmed via Gabbard framework.', type: 'intel' },
+  { time: '2026-03-23', event: 'Wyden–Leon Black letter: $170M, surveillance, Russian operative', type: 'epstein' },
+  { time: '2026-03-18', event: 'DAG Blanche blocks DEA/OCDETF memo on Epstein drug trafficking probe', type: 'epstein' },
+  { time: '2026-03-02', event: 'Clinton depositions released (Bill & Hillary, 4.5 hrs each)', type: 'epstein' },
+  { time: '2026-03-16', event: 'BofA tentative settlement — Epstein banking class-action', type: 'epstein' },
+  { time: '2026-02-25', event: 'Ariane de Rothschild–Epstein ties confirmed (12+ meetings)', type: 'epstein' },
+  { time: '2026-02-27', event: 'OpenAI signs classified Pentagon AI contract (Anthropic declined)', type: 'epstein' },
+  { time: '2026-04-02', event: 'UPCOMING: BofA settlement hearing — may seal documents', type: 'upcoming' },
+  { time: '2026-04-13', event: 'UPCOMING: Leon Black response deadline (Wyden)', type: 'upcoming' },
   { time: '2026-04-14', event: 'UPCOMING: Bondi Deposition — House Oversight (CRITICAL)', type: 'upcoming' },
 ];
 
@@ -359,13 +494,4 @@ export const TAG_COLORS: Record<string, string> = {
   pattern: '#ec4899',
   connection: '#f59e0b',
   concern: '#ef4444',
-};
-
-// ===================== VPS CONFIG =====================
-
-export const VPS_CONFIG = {
-  endpoint: 'https://ops.jr8ch.com/api',
-  wsEndpoint: 'wss://ops.jr8ch.com/ws',
-  connected: true,
-  placeholder: false,
 };
