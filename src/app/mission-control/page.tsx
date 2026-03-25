@@ -22,6 +22,8 @@ import {
   NotebookTab,
   GatewayTab,
   AgentCommsTab,
+  OracleTab,
+  ConflictMapTab,
 } from './components/tabs';
 
 const BASE_TABS = [
@@ -35,6 +37,8 @@ const BASE_TABS = [
   { id: 'epstein', label: 'Epstein Intel' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'cms', label: 'Counter-Measures' },
+  { id: 'oracle', label: 'ORACLE' },
+  { id: 'atlas', label: 'ATLAS' },
   { id: 'notebook', label: 'Notebook' },
 ];
 
@@ -175,12 +179,12 @@ function Dashboard() {
         </div>
 
         {/* ===== TABS ===== */}
-        <div className="flex gap-px px-4 md:px-7 bg-[#111827] border-t border-[#2a3550] overflow-x-auto">
+        <div className="flex gap-px px-4 md:px-7 bg-[#111827] border-t border-[#2a3550] overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {[...BASE_TABS, ...(isAdmin ? ADMIN_TABS : [])].map(t => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className="py-3 px-3 md:px-5 text-xs md:text-[13px] font-semibold tracking-wider whitespace-nowrap transition-all"
+              className="py-2.5 px-2.5 md:px-4 text-[11px] md:text-xs font-semibold tracking-wider whitespace-nowrap transition-all"
               style={{
                 background: tab === t.id ? '#1a2235' : 'transparent',
                 color: tab === t.id ? '#06b6d4' : '#64748b',
@@ -195,10 +199,12 @@ function Dashboard() {
 
       {/* ===== CONTENT ===== */}
       <div className="p-4 md:p-6 md:px-8 relative z-10">
-        {/* Admin-only tabs render for all operations */}
+        {/* Tabs that render for all operations */}
+        {tab === 'oracle' && <OracleTab />}
+        {tab === 'atlas' && <ConflictMapTab />}
         {isAdmin && tab === 'gateway' && <GatewayTab />}
         {isAdmin && tab === 'comms' && <AgentCommsTab />}
-        {tab !== 'gateway' && tab !== 'comms' && (
+        {tab !== 'oracle' && tab !== 'atlas' && tab !== 'gateway' && tab !== 'comms' && (
           isLumen ? (
             <>
               {tab === 'overview' && <OverviewTab />}
