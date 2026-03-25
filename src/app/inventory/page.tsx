@@ -276,22 +276,73 @@ function DashboardView({ items, transactions }: { items: Item[]; transactions: T
 
 // ===================== SCAN VIEW =====================
 
+function CameraScanner({ onScan, onClose }: { onScan: (code: string) => void; onClose: () => void }) {
+  const scannerRef = useRef<HTMLDivElement>(null);
+  const html5QrRef = useRef<any>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      if (!mounted || !scannerRef.current) return;
+      const scanner = new Html5Qrcode('camera-scanner');
+      html5QrRef.current = scanner;
+      try {
+        await scanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 280, height: 150 }, aspectRatio: 1.5 },
+          (decodedText: string) => {
+            onScan(decodedText);
+            scanner.stop().catch(() => {});
+          },
+          () => {},
+        );
+      } catch (err) {
+        console.error('Camera error:', err);
+      }
+    })();
+    return () => {
+      mounted = false;
+      html5QrRef.current?.stop().catch(() => {});
+    };
+  }, [onScan]);
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="px-6 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+        <span className="text-sm font-bold text-gray-900">Camera Scanner</span>
+        <button onClick={onClose} className="text-xs font-bold text-gray-500 hover:text-red-600 px-3 py-1 rounded-lg border border-gray-200 hover:border-red-200 transition-all">
+          Close Camera
+        </button>
+      </div>
+      <div className="bg-black flex items-center justify-center" style={{ minHeight: '280px' }}>
+        <div id="camera-scanner" ref={scannerRef} className="w-full" />
+      </div>
+      <div className="px-6 py-3 text-center text-xs text-gray-400">Point your camera at a barcode</div>
+    </Card>
+  );
+}
+
 function ScanView({ items, transactions, onTransaction }: { items: Item[]; transactions: Transaction[]; onTransaction: (t: Transaction) => void }) {
   const [barcode, setBarcode] = useState('');
   const [matched, setMatched] = useState<Item | null>(null);
   const [txType, setTxType] = useState<'IN' | 'OUT' | 'PURCHASE'>('OUT');
   const [qty, setQty] = useState(1);
   const [feedback, setFeedback] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  const lookupBarcode = (code: string) => {
+    setBarcode(code);
+    const item = items.find(i => i.barcode === code.trim());
+    if (item) { setMatched(item); setFeedback(null); setShowCamera(false); }
+    else { setMatched(null); setFeedback({ msg: `No item found for barcode: ${code}`, ok: false }); }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && barcode.trim()) {
-      const item = items.find(i => i.barcode === barcode.trim());
-      if (item) { setMatched(item); setFeedback(null); }
-      else { setMatched(null); setFeedback({ msg: `No item found for barcode: ${barcode}`, ok: false }); }
-    }
+    if (e.key === 'Enter' && barcode.trim()) lookupBarcode(barcode.trim());
   };
 
   const handleSubmit = () => {
@@ -325,8 +376,21 @@ function ScanView({ items, transactions, onTransaction }: { items: Item[]; trans
             className={`${inputMonoClass} text-xl text-center py-5`} autoFocus
           />
         </InputField>
-        <p className="text-[11px] text-gray-300 text-center mt-3 tracking-wide">Bluetooth scanner will auto-submit on Enter</p>
+        <div className="flex items-center justify-center gap-4 mt-4">
+          <p className="text-[11px] text-gray-300 tracking-wide">Bluetooth scanner auto-submits on Enter</p>
+          <span className="text-gray-200">|</span>
+          <button
+            onClick={() => setShowCamera(!showCamera)}
+            className="text-[11px] font-bold text-blue-600 hover:text-blue-700 tracking-wide transition-colors"
+          >
+            {showCamera ? 'Hide Camera' : 'Use Phone Camera'}
+          </button>
+        </div>
       </Card>
+
+      {showCamera && (
+        <CameraScanner onScan={lookupBarcode} onClose={() => setShowCamera(false)} />
+      )}
 
       {feedback && (
         <div className={`p-4 rounded-xl text-sm font-semibold text-center border ${feedback.ok ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
