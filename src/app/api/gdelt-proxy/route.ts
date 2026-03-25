@@ -6,8 +6,6 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
   let query = searchParams.get('query') || '';
-
-  // Default query if empty
   if (!query) query = '(conflict OR war OR crisis OR military) sourcelang:english';
 
   // GDELT requires parentheses around OR'd terms
@@ -18,7 +16,6 @@ export async function GET(request: Request) {
     query = `(${baseQuery})${lang}`;
   }
 
-  // Build URL with URLSearchParams to handle encoding correctly
   const params = new URLSearchParams({
     query,
     mode: 'artlist',
@@ -31,22 +28,27 @@ export async function GET(request: Request) {
   const gdeltUrl = `https://api.gdeltproject.org/api/v2/doc/doc?${params.toString()}`;
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(gdeltUrl, { signal: controller.signal });
-    clearTimeout(timeout);
+    const res = await fetch(gdeltUrl, {
+      signal: AbortSignal.timeout(20000),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; VIGIL/1.0)',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => 'unknown');
+      return NextResponse.json({ articles: [], error: `GDELT ${res.status}: ${errText.slice(0, 100)}`, debug: gdeltUrl });
+    }
 
     const text = await res.text();
 
     if (!text.startsWith('{') && !text.startsWith('[')) {
-      console.error('[GDELT PROXY] Non-JSON response:', text.slice(0, 200));
-      return NextResponse.json({ articles: [], error: text.slice(0, 200) });
+      return NextResponse.json({ articles: [], error: `Non-JSON: ${text.slice(0, 100)}`, debug: gdeltUrl });
     }
 
-    const data = JSON.parse(text);
-    return NextResponse.json(data);
+    return NextResponse.json(JSON.parse(text));
   } catch (err: any) {
-    console.error('[GDELT PROXY] Error:', err.message);
-    return NextResponse.json({ articles: [], error: err.message });
+    return NextResponse.json({ articles: [], error: `${err.name}: ${err.message}`, debug: gdeltUrl });
   }
 }
