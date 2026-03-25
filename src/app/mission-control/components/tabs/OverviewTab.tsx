@@ -83,6 +83,48 @@ export default function OverviewTab() {
         )}
       </div>
 
+      {/* Critical Alert Banner — only shows when priority is critical or threat is elevated */}
+      {live && (mcStatus?.priority === 'critical' || (mission.threat as string) === 'ELEVATED') && (
+        <div className="border border-red-500/30 bg-red-500/[.08] rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-red-400 text-lg">{'\u26A0\uFE0F'}</span>
+              <span className="font-mono text-sm font-bold text-red-400 tracking-wider">
+                CRITICAL INTEL — {(mcStatus?.priority as string)?.toUpperCase() || 'ELEVATED'} PRIORITY
+              </span>
+            </div>
+            <span className="font-mono text-[10px] text-slate-500">
+              {mcStatus?.last_analysis ? new Date(mcStatus.last_analysis as string).toLocaleString() : ''}
+              {mcStatus?.model_used ? ` · ${(mcStatus.model_used as string).includes('opus') ? 'Opus Analysis' : 'Sonnet Analysis'}` : ''}
+            </span>
+          </div>
+
+          {live.latestStrategy && (live.latestStrategy as Record<string, unknown>).sections && (
+            <div className="text-[11px] text-slate-400 mb-2">
+              Sections: {((live.latestStrategy as Record<string, unknown>).sections as string[]).join(' \u2192 ')}
+            </div>
+          )}
+
+          {live.latestStrategy && ((live.latestStrategy as Record<string, unknown>).orders as Array<{id: number; text: string}>)?.length > 0 && (
+            <div className="mt-2 space-y-1">
+              <div className="text-[10px] text-red-400 uppercase tracking-wider mb-1">Active Orders</div>
+              {((live.latestStrategy as Record<string, unknown>).orders as Array<{id: number; text: string}>).map((order, i) => (
+                <div key={i} className="flex items-start gap-2 text-[11px] text-slate-300">
+                  <span className="text-red-400 font-mono min-w-[20px]">#{order.id}</span>
+                  <span>{order.text}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-3 text-[10px] text-slate-500">
+            {mcStatus?.strategy_file ? `Full analysis: ${mcStatus.strategy_file}` : ''}
+            {mcStatus?.intel_files_analysed ? ` · ${mcStatus.intel_files_analysed} files analysed` : ''}
+            {mcStatus?.input_tokens ? ` · ${(mcStatus.input_tokens as number).toLocaleString()} tokens in` : ''}
+          </div>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
         {stats.map((s, i) => (
