@@ -16,16 +16,10 @@ export async function GET(request: Request) {
     query = `(${baseQuery})${lang}`;
   }
 
-  const params = new URLSearchParams({
-    query,
-    mode: 'artlist',
-    maxrecords: '30',
-    format: 'json',
-    sort: 'datedesc',
-    timespan: '24h',
-  });
-
-  const gdeltUrl = `https://api.gdeltproject.org/api/v2/doc/doc?${params.toString()}`;
+  // Build URL manually — GDELT needs literal parentheses, not %28/%29
+  // Only encode spaces as +
+  const encodedQuery = query.replace(/ /g, '+');
+  const gdeltUrl = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodedQuery}&mode=artlist&maxrecords=30&format=json&sort=datedesc&timespan=24h`;
 
   try {
     const res = await fetch(gdeltUrl, {
@@ -38,17 +32,17 @@ export async function GET(request: Request) {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => 'unknown');
-      return NextResponse.json({ articles: [], error: `GDELT ${res.status}: ${errText.slice(0, 100)}`, debug: gdeltUrl });
+      return NextResponse.json({ articles: [], error: `GDELT ${res.status}: ${errText.slice(0, 200)}` });
     }
 
     const text = await res.text();
 
     if (!text.startsWith('{') && !text.startsWith('[')) {
-      return NextResponse.json({ articles: [], error: `Non-JSON: ${text.slice(0, 100)}`, debug: gdeltUrl });
+      return NextResponse.json({ articles: [], error: `Non-JSON: ${text.slice(0, 200)}` });
     }
 
     return NextResponse.json(JSON.parse(text));
   } catch (err: any) {
-    return NextResponse.json({ articles: [], error: `${err.name}: ${err.message}`, debug: gdeltUrl });
+    return NextResponse.json({ articles: [], error: `${err.name}: ${err.message}` });
   }
 }
