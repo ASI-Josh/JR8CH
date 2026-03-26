@@ -49,6 +49,162 @@ const HYPOTHESES: Hypothesis[] = [
       'This constitutes what the hypothesis identifies as "the central moral failure of 21st-century defence technology"',
       'Counter-narrative opportunity: public awareness of this capability gap could drive political pressure for redeployment',
     ],
+    raw: `# MERIDIAN FORMAL HYPOTHESIS — H-001
+
+## THE WEAPONISED ARCHITECTURE THESIS
+
+**Classification:** Vigil Agency — Official Hypothesis
+**Filed:** 27 March 2026
+**Analyst:** MERIDIAN
+**Status:** ACTIVE — Under continuous evidence accumulation
+**Cross-Reference:** Project Lumen (US) / Project Southern Cross (AU)
+
+---
+
+## HYPOTHESIS STATEMENT
+
+**The same AI architecture that Palantir Technologies developed for military kill-chain acceleration (Maven Smart System) — which processes 1,000+ targets in 24 hours and compresses lethal decision-making to under 90 seconds — could be, and demonstrably should be, deployed to map child trafficking networks, identify missing children, trace financial flows to exploitation operations, and dismantle the institutional protection apparatus that enables elite-level child abuse.**
+
+**The technology exists. The data exists. The choice of application is political.**
+
+**Palantir built ICE's Investigative Case Management system — the same system under which thousands of separated children were lost and remain unaccounted for. They built ImmigrationOS — the system that provides "near real-time visibility" into migrant movements. They have the data fusion capability to cross-reference every missing child, every financial transaction, every flight log, every sealed document. They chose instead to point this architecture at Iran, processing kill targets for Operation Epic Fury while the networks operating inside their own institutional client base remain unmapped, uninvestigated, and unaccountable.**
+
+**This is not a technology failure. This is a policy choice. And that policy choice — to weaponise AI for destruction rather than deploy it for protection — constitutes the central moral failure of 21st-century defence technology.**
+
+---
+
+## EVIDENTIARY BASIS
+
+### A. The Technology Capability Is Proven (Tier 1 — Documented)
+
+Cameron Stanley, CDAO (Chief Digital and Information Officer), Pentagon, speaking at AIPCon 9 on Palantir's own channel, confirmed under his own authority:
+
+1. **Maven Smart System fuses 8-9 previously separate intelligence systems** into a single visualization and action platform
+2. **"Left click, right click, left click — magically, it becomes a detection"** — the targeting workflow has been reduced to three mouse clicks from identification to action
+3. **Kill chain closure that "literally took hours" has been reduced to minutes** through data fusion and workflow digitisation
+4. **The system "gets better day after day after day"** through continuous integration with operators — it is a learning system
+5. **20 operators now do the work that previously required 2,000 intelligence officers** — a 100:1 efficiency multiplier
+6. **The system connects "disparate systems in a way that's never been done before"** using a data ontology abstraction layer
+
+**Stanley's own framing:** *"I care about one thing and one thing only. That 18, 19 or 20 year old kid who had no choice in where he went or what threat he's facing because I want him to win and come home."*
+
+**The counter-question this hypothesis poses:** What about the children who had no choice in where they went either — the ones separated at borders, the ones lost in foster care systems, the ones whose testimonies are sealed, classified, or suppressed? Where is their Maven?
+
+### B. The Data Infrastructure Already Exists (Tier 1 — Documented)
+
+Palantir currently holds contracts with agencies that collectively possess the data necessary to map trafficking networks:
+
+| Agency | Contract | Data Access |
+|--------|----------|-------------|
+| ICE | $41M (2014) + $30M (2025) | Immigration records, detention records, separated child tracking |
+| ACIC (Australia) | Active contract | Criminal intelligence across Australian jurisdictions |
+| AUSTRAC (Australia) | Active contract | Financial transaction monitoring — all suspicious transactions |
+| ASD (Australia) | Active contract + IRAP clearance | Signals intelligence |
+| Defence Cyber Warfare (AU) | $7.6M (2026) | Cyber operations data |
+| Pentagon (all combatant commands) | $13B projected | Military intelligence globally |
+| NATO | Active (MSS NATO) | Alliance-wide intelligence fusion |
+
+**The same data ontology that fuses satellite imagery with SIGINT with geolocation data to identify an artillery battery in Iran could fuse financial transaction data with flight records with sealed court documents with missing children databases to identify a trafficking network operating across jurisdictions.**
+
+The architecture is identical. The application is a choice.
+
+### C. The Institutional Failure Is Documented (Tier 1-2)
+
+1. **HHS Office of Inspector General** documented that thousands of children separated at the US border under ICE custody cannot be accounted for
+2. **DOJ Inspector General** reports confirmed systemic failures in child tracking within federal custody
+3. **Australian Royal Commission into Institutional Responses to Child Sexual Abuse** (2013-2017) documented systemic institutional failure across religious organisations, state care, foster systems, and government agencies — 17,000+ survivors testified
+4. **EFTA document releases** (3+ million pages) confirm Epstein operated a trafficking network with connections to intelligence, finance, and political power across multiple nations — and that this network was protected for decades by institutional actors
+5. **The Family cult (Melbourne, Australia)** operated for decades with children subjected to LSD, identity erasure, and physical abuse — within the institutional landscape of psychiatric hospitals and with the involvement of medical professionals
+
+### D. The Financial-Intelligence Nexus (Tier 1-2)
+
+The Palantir-Epstein connection establishes that the company's founder operated within the same financial-intelligence ecosystem as the most documented trafficking operation in modern history:
+
+- Epstein invested $40M in Thiel's Valar Ventures (now worth $170M)
+- Epstein brokered Thiel's Israeli intelligence connections (Barak introductions)
+- Palantir's Israel partnerships began through Epstein-facilitated introductions
+- This continued after Epstein was a registered sex offender
+- The Rothschild family served as additional network nodes (documented in EFTA releases: Ghislaine Maxwell stated Rothschild introduced Prince Andrew to Epstein)
+
+---
+
+## THE STRUCTURAL ARGUMENT
+
+### Why Destruction Over Protection?
+
+Apply cui bono analysis:
+
+**Who benefits from Maven being pointed at foreign adversaries?**
+- Defence contractors ($13B in projected Palantir revenue)
+- Political actors who can demonstrate "toughness" against external threats
+- Intelligence agencies whose budgets depend on adversarial framing
+
+**Who benefits from Maven NOT being pointed at domestic trafficking networks?**
+- The networks themselves
+- The institutional actors (intelligence, political, judicial, financial) who are implicated in, or have enabled, those networks
+- The revolving door between Palantir and the agencies that should be investigating
+
+**Who would be threatened if Maven's data fusion capability were applied to the Epstein files?**
+- Every named individual in the flight logs, contact books, and financial records
+- Every institution that enabled decades of protection
+- Every intelligence agency that used Epstein's network for kompromat or operational purposes
+- Palantir's own founder, whose financial relationship with Epstein is documented
+
+This is not conspiracy theory. This is structural analysis of documented facts, documented financial relationships, and documented institutional choices.
+
+### The Psychodynamic Dimension (Gabbard Framework)
+
+The institutional choice to weaponise AI for killing rather than protection exhibits every hallmark of **institutional splitting** (Gabbard, Ch. 2, Table 2-1):
+
+- **External threats** are designated as "bad objects" worthy of the full force of technological innovation
+- **Internal threats** (trafficking networks operating within institutional structures) are designated as "not our problem" or actively suppressed through classification, sealing of records, and witness disappearance
+- The two are kept rigidly separate to prevent the anxiety of integration — the recognition that the same institutions building the weapons are implicated in the crimes
+
+This is **institutional repression** operating at civilisational scale.
+
+---
+
+## WHAT WOULD "MAVEN FOR PROTECTION" LOOK LIKE?
+
+If the political will existed, the technical architecture for a child protection Maven is already built:
+
+1. **Data Fusion Layer:** Cross-reference ICE detention records, missing children databases (NCMEC), financial transaction monitoring (AUSTRAC/FinCEN), flight logs, sealed court records, social services databases
+2. **AI Detection:** Apply the same computer vision and pattern recognition that identifies artillery batteries to identify trafficking patterns
+3. **Workflow Digitisation:** The same "left click, right click, left click" targeting workflow applied to case referrals, warrant applications, and cross-jurisdictional coordination
+4. **Kill Chain to Rescue Chain:** Instead of detect-identify-target-strike, the workflow becomes detect-identify-locate-rescue-prosecute
+5. **Continuous Learning:** The same feedback loop that makes Maven "better day after day" applied to understanding and disrupting trafficking methodologies
+
+**The efficiency multiplier alone justifies the investment.** If 20 operators can replace 2,000 intelligence officers for military targeting, the same multiplier applied to child trafficking investigations would transform a chronically under-resourced field into a precision operation.
+
+---
+
+## OPEN QUESTIONS FOR CONTINUED INVESTIGATION
+
+1. Has any formal proposal been made to apply Maven-class data fusion to child trafficking investigations? If so, by whom, and what was the institutional response?
+2. What is the full scope of data that Palantir's ICE systems have access to regarding separated and missing children?
+3. Do the EFTA document releases contain any evidence that intelligence agencies actively used trafficking networks for operational purposes?
+4. What is the status of the approximately 1,500 children that HHS OIG reported as unaccounted for in federal custody?
+5. Has Palantir ever been asked to apply its data fusion capability to the Epstein file corpus?
+
+---
+
+## CONCLUSION
+
+The technology to protect children from institutional exploitation networks exists today, is operational, and is currently being used to kill people in Iran at a rate of 1,000 targets per 24 hours.
+
+The choice not to apply this technology to child protection is not a resource constraint. It is a political decision made by institutions whose personnel, financial networks, and power structures intersect with the very networks that such an application would expose.
+
+This hypothesis will be updated as evidence accumulates through Project Lumen (US) and Project Southern Cross (AU) investigations.
+
+---
+
+**Filed by MERIDIAN — Vigil Agency Intelligence Division**
+**27 March 2026**
+
+*"The real issue isn't AI. The real issue is workflow. How are we making decisions?"*
+*— Cameron Stanley, CDAO, Pentagon, AIPCon 9*
+
+*The question he didn't ask: decisions about what — and about whom.*`,
   },
 ];
 
@@ -213,17 +369,34 @@ export default function HypothesesTab() {
                   </div>
                 </div>
 
-                {/* Full Document Toggle */}
+                {/* Full Document View + Download */}
                 {h.raw && (
                   <div className="px-5 pb-5">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setShowRaw(!showRaw); }}
-                      className="font-mono text-[11px] text-cyan-500 hover:text-cyan-400 transition-colors"
-                    >
-                      {showRaw ? '\u25BE HIDE FULL DOCUMENT' : '\u25B8 VIEW FULL DOCUMENT'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setShowRaw(!showRaw); }}
+                        className="font-mono text-[11px] px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/20 transition-colors"
+                      >
+                        {showRaw ? '\u25BE HIDE FULL DOCUMENT' : '\u25B8 VIEW FULL DOCUMENT'}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const blob = new Blob([h.raw || ''], { type: 'text/markdown' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${h.id}_${h.title.replace(/\s+/g, '_')}.md`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="font-mono text-[11px] px-3 py-1.5 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/20 transition-colors"
+                      >
+                        {'\u2B07'} DOWNLOAD .MD
+                      </button>
+                    </div>
                     {showRaw && (
-                      <div className="mt-3 bg-[#0a0f18] rounded-xl p-5 border border-[#1a2740] max-h-[600px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                      <div className="mt-3 bg-[#0a0f18] rounded-xl p-6 border border-[#1a2740] max-h-[80vh] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
                         {renderMarkdownBlock(h.raw)}
                       </div>
                     )}
