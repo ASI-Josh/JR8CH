@@ -24,6 +24,7 @@ import {
   AgentCommsTab,
   OracleTab,
   ConflictMapTab,
+  HypothesesTab,
 } from './components/tabs';
 
 const VPS_API = process.env.NEXT_PUBLIC_VPS_ENDPOINT || 'https://ops.jr8ch.com';
@@ -40,6 +41,7 @@ const BASE_TABS = [
   { id: 'epstein', label: 'Epstein Intel' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'cms', label: 'Counter-Measures' },
+  { id: 'hypotheses', label: 'Hypotheses' },
   { id: 'oracle', label: 'ORACLE' },
   { id: 'atlas', label: 'ATLAS' },
   { id: 'notebook', label: 'Notebook' },
@@ -127,7 +129,7 @@ function Dashboard() {
   const NAV_SECTIONS = [
     { label: 'Operations', items: allTabs.filter(t => ['overview', 'threats', 'scout', 'allies'].includes(t.id)) },
     { label: 'Intelligence', items: allTabs.filter(t => ['intel', 'orders', 'exchange', 'epstein'].includes(t.id)) },
-    { label: 'Analysis', items: allTabs.filter(t => ['timeline', 'cms', 'oracle', 'atlas'].includes(t.id)) },
+    { label: 'Analysis', items: allTabs.filter(t => ['timeline', 'cms', 'hypotheses', 'oracle', 'atlas'].includes(t.id)) },
     { label: 'Tools', items: allTabs.filter(t => ['notebook', 'gateway', 'comms'].includes(t.id)) },
   ].filter(s => s.items.length > 0);
 
@@ -234,6 +236,7 @@ function Dashboard() {
         </div>
 
         <div className="p-4 md:p-6 md:px-8 relative z-10">
+          {tab === 'hypotheses' && <HypothesesTab />}
           {tab === 'oracle' && <OracleTab />}
           {tab === 'atlas' && <ConflictMapTab />}
           {isAdmin && tab === 'gateway' && <GatewayTab />}
