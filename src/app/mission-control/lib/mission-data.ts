@@ -342,6 +342,24 @@ export const PATTERN_MATCHES: PatternMatch[] = [
     epsteinInstance: "Boebert reversal after Bondi briefing (19 Mar). After face-to-face, Boebert told Bondi she was 'embarrassed' she voted for the subpoena. Target of investigation pressured investigator to feel like aggressor. Classic Gabbard projective identification.",
     insight: "Most effective institutional defense is making the investigator feel guilty for investigating. Operates identically at digital (bot-to-agent) and political (AG-to-congressmember) scales. Counter-measure: recognise 'embarrassment' feeling as signal that projective identification is occurring.",
   },
+  {
+    id: 'PM-006',
+    title: 'State Actor Truth Contamination Pattern',
+    patternClass: 'NARRATIVE_MANIPULATION',
+    confidence: 'CRITICAL',
+    lumenInstance: "Iran's state propaganda mixes genuine Epstein file evidence with fabricated AI content (doctored satellite imagery, misattributed combat footage, deepfake TikTok clusters), enabling institutional actors (ADL, WaPo) to dismiss ALL Epstein accountability as 'pro-Iran propaganda' or 'antisemitic conspiracy theory'.",
+    epsteinInstance: "52% of Americans believe distraction thesis, but institutional defense reframes majority opinion as product of foreign influence. The ADL's 'antisemitism' label applied to the Epstein-distraction narrative mirrors historical patterns of using unrelated charges to suppress accountability.",
+    insight: "Novel suppression mechanism: hostile actor exploitation of genuine evidence creates contamination vector to dismiss the evidence itself. Pattern: (1) genuine evidence exists, (2) hostile actor amplifies with propaganda additions, (3) institution labels ALL discussion as foreign propaganda, (4) original evidence becomes untouchable. More effective than direct suppression because it leverages genuine national security concerns. ClarionAgent must maintain absolute source discipline.",
+  },
+  {
+    id: 'PM-007',
+    title: 'Institutional DARVO at Mass Scale — ADL Epstein Suppression',
+    patternClass: 'DEFENSIVE_PATHOLOGY',
+    confidence: 'HIGH',
+    lumenInstance: "ADL labels Epstein-distraction thesis as 'antisemitic conspiracy theory' despite 52% voter belief. DENY (timing connection meaningless) → ATTACK (antisemitic tropes) → REVERSE VICTIM AND OFFENDER (real victims are those smeared, not children in files). Classic Gabbard DARVO at institutional scale.",
+    epsteinInstance: "Washington Post frames majority opinion as owing to 'pro-Iran propaganda' rather than evaluating 29-day gap between file release and war launch, or media displacement of March 5 supplementary release. Institution attributes belief to foreign manipulation rather than confronting evidence.",
+    insight: "Gabbard's projective identification: institution projects 'conspiracy theorist' onto public, pressuring observers to experience legitimate questions as pathological. ADL's rapid deployment suggests pre-positioned messaging — speed of response is diagnostic. Pattern activates whenever Epstein evidence gains mainstream traction.",
+  },
 ];
 
 export const SHARED_ENTITIES: SharedEntity[] = [

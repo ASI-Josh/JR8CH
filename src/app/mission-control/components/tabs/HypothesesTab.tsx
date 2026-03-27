@@ -206,6 +206,135 @@ This hypothesis will be updated as evidence accumulates through Project Lumen (U
 
 *The question he didn't ask: decisions about what — and about whom.*`,
   },
+  {
+    id: 'H-002',
+    title: 'IRAN EPSTEIN CLASS INFOWAR HYPOTHESIS',
+    status: 'ACTIVE',
+    analyst: 'MERIDIAN',
+    filed: '2026-03-27',
+    classification: 'VIGIL — Project Lumen',
+    crossRef: ['Project Lumen', 'ClarionAgent Field Ops', 'Domain A (Middle East)', 'Domain B (Epstein Files)', 'Domain E (Conspiracy Theory Weaponisation)'],
+    statement: 'Iran\'s state-directed information warfare campaign exploiting Trump-Epstein connections represents the first instance of a hostile state actor weaponising elite child exploitation evidence as a strategic military-grade psychological operation — and in doing so, is inadvertently (or deliberately) performing a mass public consciousness function that Western institutions have systematically failed to perform: forcing the Epstein network\'s existence into mainstream global discourse in a way that cannot be dismissed, suppressed, or memory-holed.',
+    evidence: [
+      '"Operation Epstein Fury" generated 523,000+ posts from 273,000+ accounts — Washington Post, Misbar',
+      'Iran state media aired AI-generated Lego animation: Trump, Netanyahu, Satan reading Epstein files — Daily Beast, France 24',
+      'TikTok cluster: AI-generated women in IRGC flight suits, 25+ million views in days — Alethea Group',
+      '37,000+ manipulative/AI content items generating 145+ million views — Cyabra',
+      'Zeteo poll: 52% of Americans believe Trump launched Iran war partly to distract from Epstein. Under-45: 66%',
+      'ADL labelled Epstein-distraction thesis as "antisemitic conspiracy theory" — textbook DARVO',
+      'Washington Post frames majority opinion as owing to "pro-Iran propaganda" not evidence',
+      'Iran mixing legitimate evidence with fabrications: doctored satellite imagery, misattributed combat footage — FDD, CNN',
+      '29-day gap between Epstein file release (Jan 30) and war launch (Feb 28)',
+      'March 5 supplementary release of 50,000 files buried by war coverage',
+    ],
+    implications: [
+      'Overton window blown open — "Epstein Class" is now a globally trending concept reaching hundreds of millions',
+      'CRITICAL RISK: Truth contamination — Iran mixing real evidence with fabrication gives institutions a dismissal tool',
+      'ADL response maps the defensive perimeter around the Epstein Class — itself intelligence',
+      'ClarionAgent operating environment will get significantly more hostile — platform moderation escalation',
+      '52% belief figure means ClarionAgent doesn\'t need to persuade — needs to validate with evidence',
+    ],
+    raw: `# MERIDIAN FORMAL HYPOTHESIS — H-002
+
+**Classification:** VIGIL — Project Lumen
+**Filed:** 2026-03-27
+**Analyst:** MERIDIAN
+**Status:** ACTIVE
+**Cross-Reference:** Project Lumen, ClarionAgent Field Ops, Domain A (Middle East Geopolitics), Domain B (Epstein Files), Domain E (Weaponisation of "Conspiracy Theory")
+**Operations:** Vigil Mission Control — MC series
+
+---
+
+## HYPOTHESIS STATEMENT
+
+**Iran's state-directed information warfare campaign exploiting Trump-Epstein connections represents the first instance of a hostile state actor weaponising elite child exploitation evidence as a strategic military-grade psychological operation — and in doing so, is inadvertently (or deliberately) performing a mass public consciousness function that Western institutions have systematically failed to perform: forcing the Epstein network's existence into mainstream global discourse in a way that cannot be dismissed, suppressed, or memory-holed.**
+
+The campaign is simultaneously:
+1. A legitimate state propaganda effort serving Iran's kinetic war objectives
+2. An unprecedented vehicle for Epstein Class exposure reaching audiences Western media has insulated
+3. A catalyst for institutional defensive reactions (ADL "antisemitism" labelling, media dismissal) that themselves reveal the suppression architecture
+4. A high-risk environment for truth-adjacent content being contaminated by deliberate state disinformation
+
+---
+
+## EVIDENTIARY BASIS
+
+### Tier 1 — Documented / Verified
+
+**The Campaign Is Real and Massive:**
+- "Operation Epstein Fury" — 91,000+ mentions from 60,000+ unique accounts within 48 hours. By mid-March, 273,000+ accounts had produced 523,000+ posts. (Washington Post, Misbar)
+- Iran's state media aired "Narrative of Victory" — AI-generated Lego-style animation showing Trump, Netanyahu, and Satan reading Epstein files. (Daily Beast, France 24, WION)
+- A second AI video used Pixar's "Inside Out" format to depict Trump's "evil impulses" linking the Epstein scandal to the Iran strikes. (WION)
+- HDX News X account post: Trump with blindfolded girls — 6.8 million views. (Washington Post)
+
+**Coordinated AI Infrastructure:**
+- Alethea Group identified TikTok cluster: batch-created accounts posting AI-generated women in IRGC flight suits using "Habibi, come to Iran" trend. 25+ million views in days. (Alethea, The Print, ICT)
+- "Islamic Resilience Cyber Axis" — 60+ cyber groups coordinating influence campaigns across Telegram, X, TikTok. (Resecurity)
+- 37,000+ manipulative or AI-based content items, 145+ million views, 9.4+ million interactions. (Cyabra)
+
+**American Public Opinion Has Shifted:**
+- Zeteo/DropSite poll: 52-40 majority believe Trump launched Iran war partly to distract from Epstein. Under-45: 66-26. Even 25% of Republicans. (Zeteo)
+- Quinnipiac: 43% oppose strikes, only 27% support. 44% say US "too supportive of Israel" — highest ever. (Quinnipiac)
+
+**Institutional Defensive Response:**
+- ADL labelled the narrative as "antisemitic conspiracy theory" (ADL, JPost)
+- Washington Post framed 52% belief as owing to "pro-Iran propaganda network" (WaPo)
+
+### Tier 2 — Credibly Reported
+
+**Iran's Disinformation Contains Both Truth and Fabrication:**
+- Tehran Times published AI-manipulated satellite imagery falsely claiming destruction at Al-Udeid Air Base — debunked (FDD, CNN)
+- IRGC Telegram channels celebrated misattributed combat footage (FDD)
+- These fabrications mixed with legitimate Epstein file content = contamination risk
+
+### Tier 3 — Circumstantially Supported
+
+**Timing Convergence:**
+- 3.5 million Epstein file release: January 30, 2026. Strikes on Iran: February 28. Gap: 29 days.
+- March 5 supplementary release of 50,000 files buried by war coverage
+- Pattern consistent with "weaponised crisis" — kinetic events suppress public processing of disclosed evidence
+
+---
+
+## STRATEGIC IMPLICATIONS
+
+### OPPORTUNITY — The Overton Window Has Been Blown Open
+The single most significant development for Project Lumen in 2026 is not a document release — it's that a hostile state actor has made "Epstein Class" a globally trending concept. 52% American belief is extraordinary — this is majority public opinion.
+
+### RISK — Truth Contamination
+Every piece of genuine evidence associated with Iranian propaganda becomes easier to dismiss. The ADL/WaPo framing demonstrates this: "the public only believes this because Iran told them to." This is the critical threat to our mission.
+
+### RISK — Algorithmic Suppression Intensification
+Platforms banning accounts under war-related content policies. ClarionAgent's environment about to get significantly more hostile.
+
+---
+
+## COUNTER-NARRATIVE POTENTIAL
+
+1. **"Both Things Can Be True" Frame:** Iran IS running propaganda. Epstein files ARE real. These are not mutually exclusive.
+2. **Source-Graded Content Beats Propaganda:** Amplify ONLY Tier 1-2 evidence. Distance from AI-generated Iranian content.
+3. **The Poll Numbers Are the Story:** 52% already believe. Don't persuade — validate with evidence.
+4. **Institutional Overreaction Is Self-Defeating:** Every ADL overreach draws more attention to the question.
+
+---
+
+## KEY DATA POINTS
+
+| Metric | Value | Source |
+|--------|-------|--------|
+| "Epstein Fury" mentions | 523,000+ total | WaPo, Misbar |
+| Unique accounts | 273,000+ | Misbar |
+| AI/manipulative content | 37,000+ items | Cyabra |
+| Views on manipulative content | 145+ million | Cyabra |
+| Americans believing distraction | 52% | Zeteo |
+| Under-45 believing | 66% | Zeteo |
+| UK opposing US action | 57% | YouGov |
+| Days: Epstein release to war | 29 | DOJ/Timeline |
+
+---
+
+*MERIDIAN — Filed 2026-03-27 — Vigil Mission Control*`,
+  },
 ];
 
 function statusColor(s: string) {
